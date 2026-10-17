@@ -57,12 +57,9 @@
         <Border Grid.Row="1" Background="{StaticResource PanelDarkBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="8,6">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <!-- Brand logo badge -->
-                    <Border Background="#181818" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Image Source="Assets/app_icon.png" Width="20" Height="20" Margin="0,0,6,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            <TextBlock Text="DiskSweep" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                        </StackPanel>
+                    <!-- Brand Wordmark Logo -->
+                    <Border Background="Transparent" Margin="4,0,18,0" VerticalAlignment="Center">
+                        <Image Source="Assets/brand_logo.png" Height="30" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" ToolTip="DiskSweep Storage Utility" VerticalAlignment="Center"/>
                     </Border>
 
                     <!-- Scan Button -->
