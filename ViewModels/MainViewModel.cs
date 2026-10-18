@@ -15,17 +15,23 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly DriveService _driveService = new();
     private readonly CleanerService _cleanerService = new();
     private readonly LargeFileScannerService _largeFileScanner = new();
+    private readonly SettingsService _settingsService = new();
 
     private CancellationTokenSource? _cts;
     private bool _isScanning;
     private bool _isCleaning;
     private string _statusMessage = "Ready. Click 'Scan System' to inspect storage.";
+    private string _liveActionText = "Ready";
+    private string _liveFreedText = "0 B Freed";
+    private string _liveCountText = "0 Files";
+    private string _liveFileName = "";
     private double _progressValue;
     private bool _progressIsIndeterminate;
     private DriveItem? _selectedDrive;
     private CleanCategory? _selectedCategory;
     private CleanItem? _selectedCleanItem;
     private LargeFileItem? _selectedLargeFile;
+    private int _selectedTabIndex = 0;
 
     public ObservableCollection<DriveItem> Drives { get; } = new();
     public ObservableCollection<CleanCategory> Categories { get; } = new();
@@ -44,6 +50,8 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand DeleteLargeFileCommand { get; }
     public ICommand OpenDriveInExplorerCommand { get; }
     public ICommand SelectCleanItemCommand { get; }
+    public ICommand OpenSettingsCommand { get; }
+    public ICommand SaveSettingsCommand { get; }
 
     public MainViewModel()
     {
@@ -65,8 +73,23 @@ public class MainViewModel : INotifyPropertyChanged
                 SelectedCleanItem = ci;
             }
         });
+        OpenSettingsCommand = new RelayCommand(() => SelectedTabIndex = 3);
+        SaveSettingsCommand = new RelayCommand(() => SaveSettings());
 
         InitializeData();
+    }
+
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set
+        {
+            if (_selectedTabIndex != value)
+            {
+                _selectedTabIndex = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public bool IsScanning
@@ -107,6 +130,58 @@ public class MainViewModel : INotifyPropertyChanged
             if (_statusMessage != value)
             {
                 _statusMessage = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string LiveActionText
+    {
+        get => _liveActionText;
+        set
+        {
+            if (_liveActionText != value)
+            {
+                _liveActionText = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string LiveFreedText
+    {
+        get => _liveFreedText;
+        set
+        {
+            if (_liveFreedText != value)
+            {
+                _liveFreedText = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string LiveCountText
+    {
+        get => _liveCountText;
+        set
+        {
+            if (_liveCountText != value)
+            {
+                _liveCountText = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string LiveFileName
+    {
+        get => _liveFileName;
+        set
+        {
+            if (_liveFileName != value)
+            {
+                _liveFileName = value;
                 OnPropertyChanged();
             }
         }
@@ -207,8 +282,98 @@ public class MainViewModel : INotifyPropertyChanged
     public string TotalDriveCapacity => DriveItem.FormatBytes(Drives.Sum(d => d.TotalBytes));
     public string TotalDriveFree => DriveItem.FormatBytes(Drives.Sum(d => d.FreeBytes));
 
+    // Settings properties
+    public string[] AvailableThemes => ThemeManager.AvailableThemes;
+
+    public string SelectedTheme
+    {
+        get => _settingsService.Current.Theme;
+        set
+        {
+            if (_settingsService.Current.Theme != value)
+            {
+                _settingsService.Current.Theme = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                ThemeManager.ApplyTheme(value);
+                OnPropertyChanged();
+                AddLog($"Theme switched to: {value}");
+            }
+        }
+    }
+
+    public bool SafeMode24Hours
+    {
+        get => _settingsService.Current.SafeMode24Hours;
+        set
+        {
+            if (_settingsService.Current.SafeMode24Hours != value)
+            {
+                _settingsService.Current.SafeMode24Hours = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool MoveToRecycleBinInsteadOfPermanent
+    {
+        get => _settingsService.Current.MoveToRecycleBinInsteadOfPermanent;
+        set
+        {
+            if (_settingsService.Current.MoveToRecycleBinInsteadOfPermanent != value)
+            {
+                _settingsService.Current.MoveToRecycleBinInsteadOfPermanent = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool AutoScanOnStartup
+    {
+        get => _settingsService.Current.AutoScanOnStartup;
+        set
+        {
+            if (_settingsService.Current.AutoScanOnStartup != value)
+            {
+                _settingsService.Current.AutoScanOnStartup = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public int LargeFileSizeThresholdMB
+    {
+        get => _settingsService.Current.LargeFileSizeThresholdMB;
+        set
+        {
+            if (_settingsService.Current.LargeFileSizeThresholdMB != value)
+            {
+                _settingsService.Current.LargeFileSizeThresholdMB = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool ShowConfirmDialog
+    {
+        get => _settingsService.Current.ShowConfirmDialog;
+        set
+        {
+            if (_settingsService.Current.ShowConfirmDialog != value)
+            {
+                _settingsService.Current.ShowConfirmDialog = value;
+                _settingsService.SaveSettings(_settingsService.Current);
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private void InitializeData()
     {
+        ThemeManager.ApplyTheme(_settingsService.Current.Theme);
         RefreshDrives();
 
         var categories = _cleanerService.InitializeCategories();
@@ -228,7 +393,13 @@ public class MainViewModel : INotifyPropertyChanged
             Categories.Add(cat);
         }
 
-        AddLog("DiskSweep initialized. Found " + Drives.Count + " active drives.");
+        AddLog($"DiskSweep initialized. Active theme: {SelectedTheme}. Monitored drives: {Drives.Count}.");
+    }
+
+    public void SaveSettings()
+    {
+        _settingsService.SaveSettings(_settingsService.Current);
+        MessageBox.Show("Settings saved and applied successfully.", "DiskSweep Settings", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     public void RefreshDrives()
@@ -256,6 +427,10 @@ public class MainViewModel : INotifyPropertyChanged
 
         IsScanning = true;
         ProgressIsIndeterminate = true;
+        LiveActionText = "Analyzing cleanable storage...";
+        LiveFreedText = "Scanning...";
+        LiveCountText = "";
+        LiveFileName = "";
         StatusMessage = "Analyzing cleanable cache and temporary targets...";
         AddLog("Starting storage sweep analysis...");
 
@@ -273,6 +448,7 @@ public class MainViewModel : INotifyPropertyChanged
                 foreach (var item in cat.Items)
                 {
                     if (ct.IsCancellationRequested) break;
+                    LiveActionText = $"Inspecting: {item.Name}";
                     StatusMessage = $"Scanning {item.Name}...";
                     await _cleanerService.ScanItemAsync(item, ct);
                     scanned++;
@@ -284,16 +460,22 @@ public class MainViewModel : INotifyPropertyChanged
             UpdateSelectionTotals();
             RefreshDrives();
             AddLog($"Analysis complete. Found {TotalSelectedFormatted} cleanable in {TotalSelectedFiles:N0} files.");
+            LiveActionText = "Scan Complete";
+            LiveFreedText = TotalSelectedFormatted;
+            LiveCountText = $"{TotalSelectedFiles:N0} Files";
+            LiveFileName = "";
             StatusMessage = $"Analysis complete. {TotalSelectedFormatted} cleanable.";
         }
         catch (OperationCanceledException)
         {
             AddLog("Scan cancelled by user.");
+            LiveActionText = "Cancelled";
             StatusMessage = "Scan cancelled.";
         }
         catch (Exception ex)
         {
             AddLog($"Scan error: {ex.Message}");
+            LiveActionText = "Error";
             StatusMessage = "Scan failed.";
         }
         finally
@@ -316,22 +498,30 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (selectedItems.Count == 0)
         {
-            MessageBox.Show("No items are selected or all selected items are empty.", "DiskSweep", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("No items are selected or all selected items are already empty.", "DiskSweep", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
         long bytesToFree = selectedItems.Sum(i => i.Size);
-        var result = MessageBox.Show(
-            $"Are you sure you want to clean the {selectedItems.Count} selected categories?\n\nEstimated space to reclaim: {DriveItem.FormatBytes(bytesToFree)}\n\nIn-use or locked files will be safely skipped.",
-            "Confirm Disk Cleanup",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
 
-        if (result != MessageBoxResult.Yes) return;
+        if (ShowConfirmDialog)
+        {
+            var result = MessageBox.Show(
+                $"Clean the {selectedItems.Count} selected categories?\n\nEstimated space to reclaim: {DriveItem.FormatBytes(bytesToFree)}\n\nLocked or active files will be safely skipped.",
+                "Confirm Disk Cleanup",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+        }
 
         IsCleaning = true;
         ProgressIsIndeterminate = false;
         ProgressValue = 0;
+        LiveActionText = "Purging cleanable files...";
+        LiveFreedText = "0 B Freed";
+        LiveCountText = "0 Files";
+        LiveFileName = "";
         StatusMessage = "Purging cleanable files...";
         AddLog($"Commencing deletion across {selectedItems.Count} targets...");
 
@@ -346,21 +536,29 @@ public class MainViewModel : INotifyPropertyChanged
         {
             var progress = new Progress<CleanerService.CleanProgress>(p =>
             {
-                StatusMessage = $"Deleting: {p.CurrentItem} ({p.FilesDeleted} deleted, {DriveItem.FormatBytes(p.BytesFreed)} freed)";
+                long currentFreed = totalFreed + p.BytesFreed;
+                int currentDel = totalDeleted + p.FilesDeleted;
+                LiveFreedText = $"{DriveItem.FormatBytes(currentFreed)} Freed";
+                LiveCountText = $"{currentDel:N0} Deleted";
+                LiveFileName = p.CurrentItem;
             });
 
             for (int i = 0; i < selectedItems.Count; i++)
             {
                 if (ct.IsCancellationRequested) break;
                 var item = selectedItems[i];
+                LiveActionText = $"Cleaning {item.Name}...";
                 StatusMessage = $"Cleaning {item.Name}...";
 
-                var (del, freed, skip) = await _cleanerService.CleanItemAsync(item, progress, ct);
+                var (del, freed, skip) = await _cleanerService.CleanItemAsync(item, _settingsService.Current, progress, ct);
                 totalDeleted += del;
                 totalFreed += freed;
                 totalSkipped += skip;
 
-                AddLog($"Cleaned {item.Name}: {del} files removed, {DriveItem.FormatBytes(freed)} freed, {skip} locked/skipped.");
+                LiveFreedText = $"{DriveItem.FormatBytes(totalFreed)} Freed";
+                LiveCountText = $"{totalDeleted:N0} Deleted";
+
+                AddLog($"Cleaned {item.Name}: {del:N0} files removed, {DriveItem.FormatBytes(freed)} freed, {skip:N0} locked/skipped.");
                 ProgressValue = (double)(i + 1) / selectedItems.Count * 100.0;
             }
 
@@ -374,6 +572,10 @@ public class MainViewModel : INotifyPropertyChanged
 
             string summaryMsg = $"Cleanup finished! Freed {DriveItem.FormatBytes(totalFreed)} ({totalDeleted:N0} files removed, {totalSkipped:N0} safely skipped).";
             AddLog(summaryMsg);
+            LiveActionText = "Cleanup Complete";
+            LiveFreedText = $"{DriveItem.FormatBytes(totalFreed)} Freed";
+            LiveCountText = $"{totalDeleted:N0} Deleted";
+            LiveFileName = "";
             StatusMessage = summaryMsg;
 
             MessageBox.Show(summaryMsg, "DiskSweep Cleanup Finished", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -381,11 +583,13 @@ public class MainViewModel : INotifyPropertyChanged
         catch (OperationCanceledException)
         {
             AddLog("Cleanup cancelled by user.");
+            LiveActionText = "Cancelled";
             StatusMessage = "Cleanup cancelled.";
         }
         catch (Exception ex)
         {
             AddLog($"Cleanup error: {ex.Message}");
+            LiveActionText = "Error";
             StatusMessage = "Cleanup failed.";
         }
         finally
@@ -405,8 +609,9 @@ public class MainViewModel : INotifyPropertyChanged
 
         IsScanning = true;
         ProgressIsIndeterminate = true;
+        LiveActionText = $"Scanning {targetRoot} for large files...";
         StatusMessage = $"Scanning {targetRoot} for top large files...";
-        AddLog($"Starting deep large-file scan on {targetRoot}...");
+        AddLog($"Starting deep large-file scan on {targetRoot} (Threshold: >{LargeFileSizeThresholdMB} MB)...");
 
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
@@ -416,11 +621,13 @@ public class MainViewModel : INotifyPropertyChanged
             LargeFiles.Clear();
             var progress = new Progress<LargeFileScannerService.ScanProgress>(p =>
             {
-                StatusMessage = $"Analyzing {p.CurrentFolder} ({p.FilesScanned:N0} files scanned, {p.MatchesFound} found)...";
+                LiveActionText = $"Analyzing: {Path.GetFileName(p.CurrentFolder)}";
+                LiveCountText = $"{p.FilesScanned:N0} files";
+                LiveFreedText = $"{p.MatchesFound} found";
+                StatusMessage = $"Analyzing {p.CurrentFolder} ({p.FilesScanned:N0} scanned, {p.MatchesFound} found)...";
             });
 
-            // Find top 100 files larger than 50 MB
-            long minSize = 50L * 1024 * 1024;
+            long minSize = (long)LargeFileSizeThresholdMB * 1024 * 1024;
             var results = await _largeFileScanner.ScanTopLargeFilesAsync(targetRoot, minSize, 100, progress, ct);
 
             foreach (var f in results)
@@ -428,17 +635,22 @@ public class MainViewModel : INotifyPropertyChanged
                 LargeFiles.Add(f);
             }
 
-            AddLog($"Large files scan completed. Found {LargeFiles.Count} large files on {targetRoot}.");
+            AddLog($"Large files scan completed. Found {LargeFiles.Count} files >= {LargeFileSizeThresholdMB} MB on {targetRoot}.");
+            LiveActionText = "Scan Complete";
+            LiveCountText = $"{LargeFiles.Count} files";
+            LiveFreedText = "";
             StatusMessage = $"Large files scan completed ({LargeFiles.Count} files listed).";
         }
         catch (OperationCanceledException)
         {
             AddLog("Large file scan cancelled.");
+            LiveActionText = "Cancelled";
             StatusMessage = "Scan cancelled.";
         }
         catch (Exception ex)
         {
             AddLog($"Large file scan error: {ex.Message}");
+            LiveActionText = "Error";
             StatusMessage = "Scan error.";
         }
         finally
@@ -454,6 +666,7 @@ public class MainViewModel : INotifyPropertyChanged
         if (_cts != null && !_cts.IsCancellationRequested)
         {
             _cts.Cancel();
+            LiveActionText = "Cancelling...";
             StatusMessage = "Cancelling operation...";
             AddLog("Cancellation requested.");
         }
@@ -477,7 +690,7 @@ public class MainViewModel : INotifyPropertyChanged
                 item.IsSelected = item.Safety == SafetyLevel.Safe || item.Safety == SafetyLevel.Recommended;
                 if (item.IsRecycleBin)
                 {
-                    item.IsSelected = false; // keep bin unchecked by default
+                    item.IsSelected = false;
                 }
             }
         }
@@ -558,7 +771,6 @@ public class MainViewModel : INotifyPropertyChanged
     {
         string timestamp = DateTime.Now.ToString("HH:mm:ss");
         LogEntries.Insert(0, $"[{timestamp}] {message}");
-        // Limit log to 500 entries
         while (LogEntries.Count > 500)
         {
             LogEntries.RemoveAt(LogEntries.Count - 1);

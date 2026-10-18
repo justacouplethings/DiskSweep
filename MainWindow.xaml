@@ -5,10 +5,10 @@
         xmlns:models="clr-namespace:DiskSweep.Models"
         Title="DiskSweep - Storage Capacity &amp; System Cleaner [Administrator]" 
         Icon="Assets/app_icon.png"
-        Height="760" Width="1160" MinHeight="620" MinWidth="940"
+        Height="780" Width="1180" MinHeight="640" MinWidth="960"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BgDarkBrush}"
-        Foreground="{StaticResource TextPrimaryBrush}">
+        Background="{DynamicResource BgDarkBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}">
 
     <Window.DataContext>
         <vm:MainViewModel/>
@@ -24,13 +24,14 @@
         </Grid.RowDefinitions>
 
         <!-- 1. Menu Bar -->
-        <Menu Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderDarkBrush}">
+        <Menu Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderDarkBrush}">
             <MenuItem Header="_File">
                 <MenuItem Header="_Refresh Drives" Command="{Binding RefreshDrivesCommand}" InputGestureText="Ctrl+R"/>
-                <Separator Background="{StaticResource BorderDarkBrush}"/>
+                <MenuItem Header="_Settings" Command="{Binding OpenSettingsCommand}" InputGestureText="Ctrl+,"/>
+                <Separator Background="{DynamicResource BorderDarkBrush}"/>
                 <MenuItem Header="Open _Disk Management" Click="MenuOpenDiskMgmt_Click"/>
                 <MenuItem Header="Windows _Storage Sense" Click="MenuOpenStorageSense_Click"/>
-                <Separator Background="{StaticResource BorderDarkBrush}"/>
+                <Separator Background="{DynamicResource BorderDarkBrush}"/>
                 <MenuItem Header="E_xit" Click="MenuExit_Click" InputGestureText="Alt+F4"/>
             </MenuItem>
             <MenuItem Header="_Scan">
@@ -43,6 +44,12 @@
                 <MenuItem Header="Select _All" Command="{Binding SelectAllCommand}" InputGestureText="Ctrl+A"/>
                 <MenuItem Header="_Deselect All" Command="{Binding DeselectAllCommand}"/>
             </MenuItem>
+            <MenuItem Header="_Themes">
+                <MenuItem Header="Charcoal Dark (Default)" Click="MenuTheme_Click" Tag="Charcoal"/>
+                <MenuItem Header="OLED Pure Black" Click="MenuTheme_Click" Tag="OLED"/>
+                <MenuItem Header="Midnight Navy" Click="MenuTheme_Click" Tag="MidnightNavy"/>
+                <MenuItem Header="Matrix Green" Click="MenuTheme_Click" Tag="MatrixGreen"/>
+            </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="Open _User Temp Folder" Click="MenuOpenUserTemp_Click"/>
                 <MenuItem Header="Open _Windows Temp Folder" Click="MenuOpenWindowsTemp_Click"/>
@@ -54,7 +61,7 @@
         </Menu>
 
         <!-- 2. Classic Toolbar (Revo / Process Hacker inspired) -->
-        <Border Grid.Row="1" Background="{StaticResource PanelDarkBrush}" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="8,6">
+        <Border Grid.Row="1" Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="8,6">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                     <!-- Brand Wordmark Logo -->
@@ -78,7 +85,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Separator Style="{x:Null}" Width="1" Background="{StaticResource BorderDarkBrush}" Margin="8,2"/>
+                    <Separator Style="{x:Null}" Width="1" Background="{DynamicResource BorderDarkBrush}" Margin="8,2"/>
 
                     <!-- Selection Buttons -->
                     <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding SelectRecommendedCommand}" ToolTip="Select safe and auto-rebuilding caches only">
@@ -102,13 +109,21 @@
                         </StackPanel>
                     </Button>
 
-                    <Separator Style="{x:Null}" Width="1" Background="{StaticResource BorderDarkBrush}" Margin="8,2"/>
+                    <Separator Style="{x:Null}" Width="1" Background="{DynamicResource BorderDarkBrush}" Margin="8,2"/>
 
                     <!-- Refresh Button -->
                     <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding RefreshDrivesCommand}" ToolTip="Reload drive space statistics">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔄" FontSize="13" Margin="0,0,4,0"/>
                             <TextBlock Text="Refresh Drives"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Settings Button -->
+                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding OpenSettingsCommand}" ToolTip="Configure appearance, themes, and safe deletion options">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙️" FontSize="13" Margin="0,0,4,0"/>
+                            <TextBlock Text="Settings"/>
                         </StackPanel>
                     </Button>
 
@@ -123,38 +138,62 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Selection Summary Pill in Toolbar -->
-                <Border DockPanel.Dock="Right" Background="#1E1E1E" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="10,4" VerticalAlignment="Center">
+                <!-- Rock-Steady Selection Summary Badge in Toolbar -->
+                <Border DockPanel.Dock="Right" Background="{DynamicResource BgDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Padding="12,5" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Ready to Clean: " Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding TotalSelectedFormatted}" FontWeight="Bold" Foreground="#4EC9B0" FontSize="14" VerticalAlignment="Center"/>
-                        <TextBlock Text=" (" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding TotalSelectedFiles, StringFormat={}{0:N0}}" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        <TextBlock Text=" files)" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Target: " Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalSelectedFormatted}" FontWeight="Bold" Foreground="#3FB950" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text=" (" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding TotalSelectedFiles, StringFormat={}{0:N0}}" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text=" files)" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
             </DockPanel>
         </Border>
 
-        <!-- 3. Feature 1: Drive Capacity & Percentage Overview Strip (WinDirStat / RAMMap style) -->
-        <Border Grid.Row="2" Background="#1C1C1C" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+        <!-- 3. Feature 1: Drive Capacity & Percentage Overview Strip (Fixed Clean Grid Header) -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0,0,0,6">
-                    <TextBlock Text="STORAGE CAPACITY &amp; DRIVE HEALTH" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Left"/>
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                        <TextBlock Text="Total Storage: " Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding TotalDriveCapacity}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,12,0"/>
-                        <TextBlock Text="Free: " Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding TotalDriveFree}" FontWeight="SemiBold" Foreground="#4EC9B0"/>
-                    </StackPanel>
-                </DockPanel>
+                <!-- Header Row: Responsive Grid eliminating any collision between Title and Metrics -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Drives List -->
+                    <!-- Left: Section Title with Icon & Badge -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
+                            <TextBlock Text="VOLUMES" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentBlueBrush}"/>
+                        </Border>
+                        <TextBlock Text="STORAGE CAPACITY &amp; DRIVE HEALTH" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Right: Clear Storage Metrics Badges -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="8,3" Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Total Pool: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding TotalDriveCapacity}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#1C2E24" BorderBrush="#2EA043" BorderThickness="1" CornerRadius="3" Padding="8,3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Available: " FontSize="11" Foreground="#99DDB0"/>
+                                <TextBlock Text="{Binding TotalDriveFree}" FontSize="11" FontWeight="Bold" Foreground="#3FB950"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Drives List Cards -->
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding Drives}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -163,9 +202,9 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:DriveItem}">
-                            <Border Background="#252526" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,10,6" Width="265" Padding="8,6">
+                            <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,10,6" Width="268" Padding="10,8">
                                 <Border.ContextMenu>
-                                    <ContextMenu Background="#252526">
+                                    <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
                                         <MenuItem Header="Open Drive in File Explorer" Command="{Binding DataContext.OpenDriveInExplorerCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}"/>
                                     </ContextMenu>
                                 </Border.ContextMenu>
@@ -180,15 +219,15 @@
                                     <DockPanel Grid.Row="0">
                                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                                             <TextBlock Text="💾" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <Border DockPanel.Dock="Right" Background="#333333" CornerRadius="3" Padding="4,1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding FileSystem}" FontSize="10" Foreground="#AAAAAA"/>
+                                        <Border DockPanel.Dock="Right" Background="{DynamicResource HeaderDarkBrush}" CornerRadius="3" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding FileSystem}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </Border>
                                     </DockPanel>
 
                                     <!-- Row 1: Space Usage Bar -->
-                                    <Grid Grid.Row="1" Margin="0,6,0,4">
+                                    <Grid Grid.Row="1" Margin="0,7,0,5">
                                         <ProgressBar Style="{StaticResource SpaceProgressBarStyle}" 
                                                      Value="{Binding UsedPercentage, Mode=OneWay}" 
                                                      Foreground="{Binding FreePercentage, Converter={StaticResource FreePercentToBrushConverter}}"/>
@@ -196,8 +235,8 @@
 
                                     <!-- Row 2: Free space and percentage -->
                                     <DockPanel Grid.Row="2">
-                                        <TextBlock Text="{Binding FreeDisplay, StringFormat={}{0} free}" FontSize="11" Foreground="#4EC9B0" FontWeight="SemiBold" DockPanel.Dock="Left"/>
-                                        <TextBlock Text="{Binding FreePercentage, StringFormat={}{0:F1}% free}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Right"/>
+                                        <TextBlock Text="{Binding FreeDisplay, StringFormat={}{0} free}" FontSize="11" Foreground="#3FB950" FontWeight="SemiBold" DockPanel.Dock="Left"/>
+                                        <TextBlock Text="{Binding FreePercentage, StringFormat={}{0:F1}% free}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right"/>
                                     </DockPanel>
                                 </Grid>
                             </Border>
@@ -208,13 +247,13 @@
         </Border>
 
         <!-- 4. Main Work Area (Tabs) -->
-        <TabControl Grid.Row="3" Background="{StaticResource BgDarkBrush}" BorderThickness="0" Margin="8,8,8,0">
-            <!-- Tab 1: System Cleaner (Features 2 & 3) -->
+        <TabControl Grid.Row="3" SelectedIndex="{Binding SelectedTabIndex}" Background="{DynamicResource BgDarkBrush}" BorderThickness="0" Margin="8,8,8,0">
+            <!-- Tab 1: System Cleaner -->
             <TabItem Header="🧹 System Cleaner">
-                <Grid Background="{StaticResource SurfaceDarkBrush}">
+                <Grid Background="{DynamicResource SurfaceDarkBrush}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/> <!-- Description Box (Revo style) -->
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Categories & Items Tree/List -->
@@ -222,31 +261,31 @@
                         <ItemsControl ItemsSource="{Binding Categories}" Margin="8">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type models:CleanCategory}">
-                                    <Border Background="#242424" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,10">
+                                    <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,10">
                                         <Grid>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/> <!-- Category Header -->
-                                                <RowDefinition Height="Auto"/> <!-- Items List -->
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
                                             <!-- Category Header -->
-                                            <Border Grid.Row="0" Background="#2C2C2C" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,7">
+                                            <Border Grid.Row="0" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,7">
                                                 <DockPanel>
                                                     <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,8,0" DockPanel.Dock="Left"/>
                                                     <TextBlock Text="{Binding Icon}" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" DockPanel.Dock="Left"/>
 
                                                     <!-- Category Total Info Badges -->
                                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                                                        <Border Background="#1E1E1E" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="6,2" Margin="0,0,6,0">
-                                                            <TextBlock Text="{Binding ItemCountFormatted}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        <Border Background="{DynamicResource BgDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="6,2" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding ItemCountFormatted}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                         </Border>
-                                                        <Border Background="#1F3A52" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3" Padding="8,2">
-                                                            <TextBlock Text="{Binding TotalSizeFormatted}" FontWeight="Bold" FontSize="12" Foreground="#4EC9B0"/>
+                                                        <Border Background="#1C2E24" BorderBrush="#2EA043" BorderThickness="1" CornerRadius="3" Padding="8,2">
+                                                            <TextBlock Text="{Binding TotalSizeFormatted}" FontWeight="Bold" FontSize="12" Foreground="#3FB950"/>
                                                         </Border>
                                                     </StackPanel>
 
-                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                 </DockPanel>
                                             </Border>
 
@@ -254,9 +293,9 @@
                                             <ItemsControl Grid.Row="1" ItemsSource="{Binding Items}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate DataType="{x:Type models:CleanItem}">
-                                                        <Border Background="Transparent" BorderBrush="#2F2F2F" BorderThickness="0,0,0,1" Padding="12,6">
+                                                        <Border Background="Transparent" BorderBrush="{DynamicResource HeaderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,6">
                                                             <Border.ContextMenu>
-                                                                <ContextMenu Background="#252526">
+                                                                <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
                                                                     <MenuItem Header="Open Folder in File Explorer" 
                                                                               Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}" 
                                                                               CommandParameter="{Binding}"/>
@@ -271,35 +310,35 @@
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="Auto"/>   <!-- Checkbox -->
                                                                     <ColumnDefinition Width="240"/>    <!-- Name -->
-                                                                    <ColumnDefinition Width="80"/>     <!-- Safety Level Badge -->
+                                                                    <ColumnDefinition Width="80"/>     <!-- Safety Badge -->
                                                                     <ColumnDefinition Width="110"/>    <!-- Size -->
                                                                     <ColumnDefinition Width="100"/>    <!-- Files Count -->
                                                                     <ColumnDefinition Width="*"/>      <!-- Target Path -->
-                                                                    <ColumnDefinition Width="130"/>    <!-- Status -->
+                                                                    <ColumnDefinition Width="140"/>    <!-- Status -->
                                                                 </Grid.ColumnDefinitions>
 
                                                                 <!-- Checkbox -->
                                                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                                                                 <!-- Name -->
-                                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
 
                                                                 <!-- Safety Badge -->
-                                                                <Border Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="3" Padding="5,1" Background="#1E1E1E" BorderThickness="1" BorderBrush="{Binding Safety, Converter={StaticResource SafetyToBrushConverter}}">
+                                                                <Border Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center" CornerRadius="3" Padding="5,1" Background="{DynamicResource BgDarkBrush}" BorderThickness="1" BorderBrush="{Binding Safety, Converter={StaticResource SafetyToBrushConverter}}">
                                                                     <TextBlock Text="{Binding Safety, Converter={StaticResource SafetyToStringConverter}}" FontSize="9" FontWeight="Bold" Foreground="{Binding Safety, Converter={StaticResource SafetyToBrushConverter}}"/>
                                                                 </Border>
 
                                                                 <!-- Size -->
-                                                                <TextBlock Grid.Column="3" Text="{Binding SizeFormatted}" FontWeight="SemiBold" FontSize="12" Foreground="#4EC9B0" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="3" Text="{Binding SizeFormatted}" FontWeight="SemiBold" FontSize="12" Foreground="#3FB950" VerticalAlignment="Center"/>
 
                                                                 <!-- Count -->
-                                                                <TextBlock Grid.Column="4" Text="{Binding CountFormatted}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                                <TextBlock Grid.Column="4" Text="{Binding CountFormatted}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
 
                                                                 <!-- Path -->
-                                                                <TextBlock Grid.Column="5" Text="{Binding TargetPath}" FontSize="11" Foreground="#888888" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0" ToolTip="{Binding TargetPath}"/>
+                                                                <TextBlock Grid.Column="5" Text="{Binding TargetPath}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0" ToolTip="{Binding TargetPath}"/>
 
                                                                 <!-- Status -->
-                                                                <TextBlock Grid.Column="6" Text="{Binding Status}" FontSize="11" Foreground="#CCCCCC" VerticalAlignment="Center" TextAlignment="Right"/>
+                                                                <TextBlock Grid.Column="6" Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextAlignment="Right"/>
                                                             </Grid>
                                                         </Border>
                                                     </DataTemplate>
@@ -312,58 +351,56 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- Bottom Description Panel (Revo Uninstaller style) -->
-                    <Border Grid.Row="1" Background="#1D1D1D" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="12,8">
+                    <!-- Bottom Description Panel -->
+                    <Border Grid.Row="1" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,1,0,0" Padding="12,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Text="ℹ️ Safety &amp; Target Details:" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentBlueBrush}" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                            <TextBlock Grid.Column="0" Text="ℹ️ Safety &amp; Target Details:" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource AccentBlueBrush}" Margin="0,0,10,0" VerticalAlignment="Top"/>
                             <StackPanel Grid.Column="1">
-                                <TextBlock Text="{Binding SelectedCleanItem.Name, TargetNullValue='Overview'}" FontWeight="SemiBold" FontSize="11" Foreground="#FFFFFF" Margin="0,0,0,2"/>
-                                <TextBlock Text="{Binding SelectedCleanItem.Description, TargetNullValue='Click on any item above to review its target folder and purpose. DiskSweep deletes safely: active or locked files in use are safely bypassed without crashing or halting the sweep.'}" 
-                                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedCleanItem.Name, TargetNullValue='Overview'}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                                <TextBlock Text="{Binding SelectedCleanItem.Description, TargetNullValue='Select any category or cache item above to review its target folder. All files are safely removed; if any file is in use by a running process, DiskSweep automatically skips it without crashing or interrupting your work.'}" 
+                                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                                 <TextBlock Text="{Binding SelectedCleanItem.TargetPath, StringFormat='Target Path: {0}'}" 
                                            Visibility="{Binding SelectedCleanItem, Converter={StaticResource NullToVisibilityConverter}}"
-                                           FontSize="10" Foreground="#777777" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
+                                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
             </TabItem>
 
-            <!-- Tab 2: Large Files Analyzer (WinDirStat style) -->
+            <!-- Tab 2: Large Files Analyzer -->
             <TabItem Header="📊 Space Analyzer (Large Files)">
-                <Grid Background="{StaticResource SurfaceDarkBrush}">
+                <Grid Background="{DynamicResource SurfaceDarkBrush}">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/> <!-- Analyzer Controls -->
-                        <RowDefinition Height="*"/>    <!-- DataGrid of Large Files -->
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Controls Strip -->
-                    <Border Grid.Row="0" Background="#252526" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,8">
+                    <Border Grid.Row="0" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,8">
                         <DockPanel>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                <TextBlock Text="Target Drive: " VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,6,0"/>
-                                <ComboBox Width="140" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" DisplayMemberPath="DisplayTitle" Background="#1E1E1E" Foreground="#FFFFFF" Margin="0,0,10,0"/>
-                                <Button Style="{StaticResource AccentButtonStyle}" Command="{Binding ScanLargeFilesCommand}" ToolTip="Scan drive for top 100 space-consuming files (>50MB)">
+                                <TextBlock Text="Target Drive: " VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0"/>
+                                <ComboBox Width="140" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" DisplayMemberPath="DisplayTitle" Margin="0,0,10,0"/>
+                                <Button Style="{StaticResource AccentButtonStyle}" Command="{Binding ScanLargeFilesCommand}" ToolTip="Scan drive for top 100 space-consuming files">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="🔎 Scan Top Large Files" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
 
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding LargeFiles.Count, StringFormat={}{0} large files discovered}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding LargeFiles.Count, StringFormat={}{0} large files discovered}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </DockPanel>
                     </Border>
 
-                    <!-- Large Files DataGrid -->
                     <DataGrid Grid.Row="1" ItemsSource="{Binding LargeFiles}" SelectedItem="{Binding SelectedLargeFile}" 
                               AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
                         <DataGrid.ContextMenu>
-                            <ContextMenu Background="#252526">
+                            <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
                                 <MenuItem Header="Open Folder in File Explorer" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding SelectedLargeFile}"/>
                                 <MenuItem Header="Move File to Recycle Bin" Command="{Binding DeleteLargeFileCommand}" CommandParameter="{Binding SelectedLargeFile}"/>
                             </ContextMenu>
@@ -381,58 +418,209 @@
 
             <!-- Tab 3: Activity Log -->
             <TabItem Header="📋 Activity Log">
-                <Grid Background="{StaticResource SurfaceDarkBrush}">
+                <Grid Background="{DynamicResource SurfaceDarkBrush}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="#252526" BorderBrush="{StaticResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,6">
+                    <Border Grid.Row="0" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,6">
                         <DockPanel>
-                            <TextBlock Text="Live Execution &amp; Audit Log" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="Live Execution &amp; Audit Log" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <Button DockPanel.Dock="Right" Content="Clear Log" Style="{StaticResource ToolbarButtonStyle}" Click="BtnClearLog_Click"/>
                         </DockPanel>
                     </Border>
 
-                    <ListBox Grid.Row="1" ItemsSource="{Binding LogEntries}" Background="#181818" Foreground="#4EC9B0" 
+                    <ListBox Grid.Row="1" ItemsSource="{Binding LogEntries}" Background="{DynamicResource BgDarkBrush}" Foreground="#3FB950" 
                              FontFamily="Consolas" FontSize="11" BorderThickness="0" Padding="8"/>
                 </Grid>
             </TabItem>
+
+            <!-- Tab 4: Settings & Themes (New Feature) -->
+            <TabItem Header="⚙️ Settings &amp; Themes">
+                <ScrollViewer Background="{DynamicResource SurfaceDarkBrush}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="24,20" MaxWidth="800" HorizontalAlignment="Left">
+                        <!-- Header -->
+                        <TextBlock Text="Settings &amp; Personalization" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Customize interface themes, deletion behavior, safety cushions, and analysis thresholds." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
+
+                        <!-- Section 1: Themes -->
+                        <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🎨 Visual Theme" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Select a theme below to instantly update the entire application." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Theme 1: Charcoal -->
+                                    <RadioButton Grid.Column="0" GroupName="ThemeGroup" Content="Charcoal Dark" Tag="Charcoal" Click="ThemeRadio_Click"
+                                                 IsChecked="True" Margin="0,0,8,0">
+                                        <RadioButton.Template>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bd" Background="#181818" BorderBrush="#007ACC" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Charcoal Dark" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF"/>
+                                                        <TextBlock Text="Visual Studio Classic" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </RadioButton.Template>
+                                    </RadioButton>
+
+                                    <!-- Theme 2: OLED -->
+                                    <RadioButton Grid.Column="1" GroupName="ThemeGroup" Content="OLED Black" Tag="OLED" Click="ThemeRadio_Click" Margin="0,0,8,0">
+                                        <RadioButton.Template>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bd" Background="#000000" BorderBrush="#00FF9D" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                    <StackPanel>
+                                                        <TextBlock Text="OLED Black" FontWeight="Bold" FontSize="12" Foreground="#00FF9D"/>
+                                                        <TextBlock Text="Pure Black &amp; Neon" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </RadioButton.Template>
+                                    </RadioButton>
+
+                                    <!-- Theme 3: Midnight Navy -->
+                                    <RadioButton Grid.Column="2" GroupName="ThemeGroup" Content="Midnight Navy" Tag="MidnightNavy" Click="ThemeRadio_Click" Margin="0,0,8,0">
+                                        <RadioButton.Template>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bd" Background="#0B0F17" BorderBrush="#3B82F6" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Midnight Navy" FontWeight="Bold" FontSize="12" Foreground="#60A5FA"/>
+                                                        <TextBlock Text="Cyber Nord Deep Sea" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </RadioButton.Template>
+                                    </RadioButton>
+
+                                    <!-- Theme 4: Matrix Green -->
+                                    <RadioButton Grid.Column="3" GroupName="ThemeGroup" Content="Matrix Green" Tag="MatrixGreen" Click="ThemeRadio_Click">
+                                        <RadioButton.Template>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bd" Background="#060A06" BorderBrush="#10B981" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Matrix Green" FontWeight="Bold" FontSize="12" Foreground="#34D399"/>
+                                                        <TextBlock Text="Terminal Emerald" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </RadioButton.Template>
+                                    </RadioButton>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Section 2: Deletion & Safety Preferences -->
+                        <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🛡️ Deletion &amp; Safety Controls" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Configure cushions against accidental data removal." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+
+                                <CheckBox Content="24-Hour Safety Cushion: Preserve temporary files created or modified in the last 24 hours" 
+                                          IsChecked="{Binding SafeMode24Hours, Mode=TwoWay}" Margin="0,4,0,8"/>
+
+                                <CheckBox Content="Recycle Bin Safe Mode: Send deleted items to Windows Recycle Bin instead of permanent deletion" 
+                                          IsChecked="{Binding MoveToRecycleBinInsteadOfPermanent, Mode=TwoWay}" Margin="0,4,0,8"/>
+
+                                <CheckBox Content="Prompt Confirmation: Require confirmation before executing a cleanup pass" 
+                                          IsChecked="{Binding ShowConfirmDialog, Mode=TwoWay}" Margin="0,4,0,8"/>
+
+                                <CheckBox Content="Startup Scan: Automatically analyze cleanable targets when DiskSweep launches" 
+                                          IsChecked="{Binding AutoScanOnStartup, Mode=TwoWay}" Margin="0,4,0,4"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Section 3: Space Analyzer Threshold -->
+                        <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="📊 Space Analyzer Filter" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                                <TextBlock Text="Set minimum file size threshold for discovering space-consuming files." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Large File Minimum Size: " VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,12,0"/>
+                                    <ComboBox Width="130" SelectedValue="{Binding LargeFileSizeThresholdMB, Mode=TwoWay}" SelectedValuePath="Tag">
+                                        <ComboBoxItem Content="25 MB" Tag="25"/>
+                                        <ComboBoxItem Content="50 MB (Default)" Tag="50"/>
+                                        <ComboBoxItem Content="100 MB" Tag="100"/>
+                                        <ComboBoxItem Content="250 MB" Tag="250"/>
+                                        <ComboBoxItem Content="500 MB" Tag="500"/>
+                                        <ComboBoxItem Content="1 GB" Tag="1000"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Actions -->
+                        <Button Style="{StaticResource AccentButtonStyle}" Command="{Binding SaveSettingsCommand}" Width="160" HorizontalAlignment="Left" Padding="12,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💾 Save Settings" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
         </TabControl>
 
-        <!-- 5. Status Bar -->
-        <StatusBar Grid.Row="4" Background="#007ACC" Foreground="#FFFFFF" Padding="8,4">
+        <!-- 5. Status Bar (Rock-Steady Multi-Column Layout: Zero Text Jitter) -->
+        <StatusBar Grid.Row="4" Background="{DynamicResource HeaderDarkBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Padding="8,4" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderDarkBrush}">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/> <!-- Progress Bar -->
+                            <ColumnDefinition Width="Auto"/> <!-- Action Status Text -->
+                            <ColumnDefinition Width="Auto"/> <!-- Freed Metric Badge (Fixed min-width) -->
+                            <ColumnDefinition Width="Auto"/> <!-- Deleted Files Badge (Fixed min-width) -->
+                            <ColumnDefinition Width="*"/>    <!-- File Name with Ellipsis -->
+                            <ColumnDefinition Width="Auto"/> <!-- Total Drives -->
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
 
-            <!-- Left Status message & Progress -->
+            <!-- Col 0: Progress bar -->
             <StatusBarItem Grid.Column="0">
-                <StackPanel Orientation="Horizontal">
-                    <ProgressBar Width="120" Height="12" Margin="0,0,10,0" VerticalAlignment="Center" 
-                                 Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                 IsIndeterminate="{Binding ProgressIsIndeterminate}"
-                                 Value="{Binding ProgressValue}"/>
-                    <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis"/>
-                </StackPanel>
+                <ProgressBar Width="110" Height="12" Margin="0,0,10,0" VerticalAlignment="Center" 
+                             Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+                             IsIndeterminate="{Binding ProgressIsIndeterminate}"
+                             Value="{Binding ProgressValue}"/>
             </StatusBarItem>
 
-            <!-- Center Selected Summary -->
-            <StatusBarItem Grid.Column="1" Margin="10,0">
-                <TextBlock Text="{Binding TotalSelectedSummary}" FontWeight="SemiBold"/>
+            <!-- Col 1: Steady Action Status -->
+            <StatusBarItem Grid.Column="1" Margin="0,0,10,0">
+                <TextBlock Text="{Binding LiveActionText}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </StatusBarItem>
 
-            <!-- Right Drives Count -->
-            <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding TotalDrivesCount, StringFormat={}{0} Drives Monitored}" Foreground="#E0E0E0"/>
+            <!-- Col 2: Rock-steady Freed Space Badge -->
+            <StatusBarItem Grid.Column="2" Margin="0,0,8,0">
+                <Border Background="#1C2E24" BorderBrush="#2EA043" BorderThickness="1" CornerRadius="3" Padding="8,2" MinWidth="110">
+                    <TextBlock Text="{Binding LiveFreedText}" FontWeight="Bold" FontSize="11" Foreground="#3FB950" TextAlignment="Center"/>
+                </Border>
+            </StatusBarItem>
+
+            <!-- Col 3: Rock-steady Deleted Count Badge -->
+            <StatusBarItem Grid.Column="3" Margin="0,0,10,0">
+                <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="8,2" MinWidth="95">
+                    <TextBlock Text="{Binding LiveCountText}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextAlignment="Center"/>
+                </Border>
+            </StatusBarItem>
+
+            <!-- Col 4: Monospace filename preview in dedicated trailing box (never moves the badges!) -->
+            <StatusBarItem Grid.Column="4">
+                <TextBlock Text="{Binding LiveFileName}" FontFamily="Consolas" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+            </StatusBarItem>
+
+            <!-- Col 5: Right Drives Count -->
+            <StatusBarItem Grid.Column="5" Margin="10,0,0,0">
+                <TextBlock Text="{Binding TotalDrivesCount, StringFormat={}{0} Drives Monitored}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

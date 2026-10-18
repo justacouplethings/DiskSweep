@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using DiskSweep.Models;
 
@@ -213,7 +214,6 @@ public class CleanerService
             });
         }
 
-        // Firefox
         string firefoxProfiles = Path.Combine(localAppData, "Mozilla", "Firefox", "Profiles");
         if (Directory.Exists(firefoxProfiles))
         {
@@ -356,7 +356,7 @@ public class CleanerService
             Description = "Permanently clears all discarded items from the Windows Recycle Bin.",
             Safety = SafetyLevel.Caution,
             IsRecycleBin = true,
-            IsSelected = false // Unchecked by default for user safety
+            IsSelected = false
         });
 
         categories.Add(binCategory);
@@ -405,16 +405,6 @@ public class CleanerService
         }
     }
 
-    public async Task ScanCategoryAsync(CleanCategory category, CancellationToken ct)
-    {
-        foreach (var item in category.Items)
-        {
-            if (ct.IsCancellationRequested) break;
-            await ScanItemAsync(item, ct);
-        }
-        category.RefreshSummary();
-    }
-
     public async Task ScanItemAsync(CleanItem item, CancellationToken ct)
     {
         item.IsScanning = true;
@@ -439,7 +429,6 @@ public class CleanerService
                 return;
             }
 
-            // Perform fast directory enumeration in background thread
             var (totalBytes, fileCount) = await Task.Run(() => ComputeDirectorySize(item.TargetPath, ct), ct);
             item.Size = totalBytes;
             item.ItemCount = fileCount;
@@ -493,7 +482,6 @@ public class CleanerService
                         if (ct.IsCancellationRequested) break;
                         try
                         {
-                            // Avoid following recursive reparse points / symlinks
                             if ((subDir.Attributes & FileAttributes.ReparsePoint) == 0)
                             {
                                 stack.Push(subDir.FullName);
@@ -512,6 +500,7 @@ public class CleanerService
 
     public async Task<(int deletedFiles, long freedBytes, int skippedFiles)> CleanItemAsync(
         CleanItem item, 
+        AppSettings settings,
         IProgress<CleanProgress>? progress, 
         CancellationToken ct)
     {
@@ -549,104 +538,132 @@ public class CleanerService
             return (0, 0, 0);
         }
 
+        long lastReportTimestamp = Stopwatch.GetTimestamp();
+        DateTime cutoff24h = DateTime.Now.AddHours(-24);
+
         await Task.Run(() =>
         {
             try
             {
                 var dirInfo = new DirectoryInfo(item.TargetPath);
 
-                // Delete files in root
-                foreach (var file in dirInfo.EnumerateFiles())
+                // Collect subdirectories to clean
+                var stack = new Stack<DirectoryInfo>();
+                stack.Push(dirInfo);
+
+                var dirsToDelete = new List<DirectoryInfo>();
+
+                while (stack.Count > 0)
                 {
                     if (ct.IsCancellationRequested) break;
+                    var current = stack.Pop();
+
+                    FileInfo[] files;
                     try
                     {
-                        long len = file.Length;
-                        // Strip read-only if present
-                        if ((file.Attributes & FileAttributes.ReadOnly) != 0)
-                        {
-                            file.Attributes &= ~FileAttributes.ReadOnly;
-                        }
-                        file.Delete();
-                        deletedFiles++;
-                        freedBytes += len;
-                        progress?.Report(new CleanProgress(file.Name, deletedFiles, freedBytes, skippedFiles));
+                        files = current.GetFiles();
                     }
                     catch
                     {
-                        // File is in use or locked by another process - safely skip without stopping!
+                        skippedFiles++;
+                        continue;
+                    }
+
+                    // Process files in directory
+                    foreach (var file in files)
+                    {
+                        if (ct.IsCancellationRequested) break;
+
+                        if (settings.SafeMode24Hours && file.LastWriteTime > cutoff24h)
+                        {
+                            skippedFiles++;
+                            continue;
+                        }
+
+                        try
+                        {
+                            long len = file.Length;
+                            if ((file.Attributes & FileAttributes.ReadOnly) != 0)
+                            {
+                                file.Attributes &= ~FileAttributes.ReadOnly;
+                            }
+
+                            if (settings.MoveToRecycleBinInsteadOfPermanent)
+                            {
+                                if (NativeMethods.MoveToRecycleBin(file.FullName))
+                                {
+                                    deletedFiles++;
+                                    freedBytes += len;
+                                }
+                                else
+                                {
+                                    file.Delete();
+                                    deletedFiles++;
+                                    freedBytes += len;
+                                }
+                            }
+                            else
+                            {
+                                file.Delete();
+                                deletedFiles++;
+                                freedBytes += len;
+                            }
+
+                            // Throttle progress to at most once every 40ms to keep UI at 60 FPS without dispatch queue stutter
+                            long now = Stopwatch.GetTimestamp();
+                            if (Stopwatch.GetElapsedTime(lastReportTimestamp, now).TotalMilliseconds >= 40)
+                            {
+                                lastReportTimestamp = now;
+                                progress?.Report(new CleanProgress(file.Name, deletedFiles, freedBytes, skippedFiles));
+                            }
+                        }
+                        catch
+                        {
+                            // In-use or locked; safely bypassed
+                            skippedFiles++;
+                        }
+                    }
+
+                    try
+                    {
+                        foreach (var sub in current.GetDirectories())
+                        {
+                            if ((sub.Attributes & FileAttributes.ReparsePoint) == 0)
+                            {
+                                stack.Push(sub);
+                                dirsToDelete.Add(sub);
+                            }
+                        }
+                    }
+                    catch
+                    {
                         skippedFiles++;
                     }
                 }
 
-                // Delete subdirectories and their contents
-                foreach (var subDir in dirInfo.EnumerateDirectories())
+                // Clean up empty directories in reverse order
+                dirsToDelete.Reverse();
+                foreach (var sub in dirsToDelete)
                 {
                     if (ct.IsCancellationRequested) break;
-                    DeleteDirectoryRecursive(subDir, ref deletedFiles, ref freedBytes, ref skippedFiles, progress, ct);
+                    try
+                    {
+                        sub.Delete(false);
+                    }
+                    catch { }
                 }
             }
             catch { }
         }, ct);
 
-        // Recompute remaining
-        var (remBytes, remFiles) = ComputeDirectorySize(item.TargetPath, CancellationToken.None);
-        item.Size = remBytes;
-        item.ItemCount = remFiles;
-        item.Status = skippedFiles > 0 ? $"Cleaned ({skippedFiles} locked)" : "Cleaned";
+        // Immediate subtraction - no redundant disk-walk pass
+        item.Size = Math.Max(0, item.Size - freedBytes);
+        item.ItemCount = Math.Max(0, item.ItemCount - deletedFiles);
+        item.Status = skippedFiles > 0 ? $"Cleaned ({skippedFiles} locked/skipped)" : "Cleaned";
+
+        // Final progress report for item
+        progress?.Report(new CleanProgress(item.Name, deletedFiles, freedBytes, skippedFiles));
 
         return (deletedFiles, freedBytes, skippedFiles);
-    }
-
-    private void DeleteDirectoryRecursive(
-        DirectoryInfo dir, 
-        ref int deleted, 
-        ref long freed, 
-        ref int skipped, 
-        IProgress<CleanProgress>? progress, 
-        CancellationToken ct)
-    {
-        if (ct.IsCancellationRequested) return;
-
-        try
-        {
-            foreach (var file in dir.EnumerateFiles())
-            {
-                if (ct.IsCancellationRequested) break;
-                try
-                {
-                    long len = file.Length;
-                    if ((file.Attributes & FileAttributes.ReadOnly) != 0)
-                    {
-                        file.Attributes &= ~FileAttributes.ReadOnly;
-                    }
-                    file.Delete();
-                    deleted++;
-                    freed += len;
-                    progress?.Report(new CleanProgress(file.Name, deleted, freed, skipped));
-                }
-                catch
-                {
-                    skipped++;
-                }
-            }
-
-            foreach (var sub in dir.EnumerateDirectories())
-            {
-                if (ct.IsCancellationRequested) break;
-                DeleteDirectoryRecursive(sub, ref deleted, ref freed, ref skipped, progress, ct);
-            }
-
-            // Remove empty folder if unlocked
-            try
-            {
-                dir.Delete(false);
-            }
-            catch { }
-        }
-        catch
-        {
-            skipped++;
-        }
     }
 }

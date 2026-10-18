@@ -21,8 +21,7 @@ public partial class MainWindow : Window
     {
         EnableDarkModeTitleBar();
 
-        // Perform initial passive drive enumeration and scan
-        if (DataContext is MainViewModel vm)
+        if (DataContext is MainViewModel vm && vm.AutoScanOnStartup)
         {
             _ = vm.ScanCleanableAsync();
         }
@@ -65,6 +64,11 @@ public partial class MainWindow : Window
             vm.SelectAllCommand.Execute(null);
             e.Handled = true;
         }
+        else if (e.Key == Key.OemComma && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        {
+            vm.SelectedTabIndex = 3;
+            e.Handled = true;
+        }
         else if (e.Key == Key.Escape && vm.IsBusy)
         {
             vm.CancelCurrentOperation();
@@ -74,6 +78,22 @@ public partial class MainWindow : Window
         {
             ShowAbout();
             e.Handled = true;
+        }
+    }
+
+    private void MenuTheme_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is string theme && DataContext is MainViewModel vm)
+        {
+            vm.SelectedTheme = theme;
+        }
+    }
+
+    private void ThemeRadio_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.Tag is string theme && DataContext is MainViewModel vm)
+        {
+            vm.SelectedTheme = theme;
         }
     }
 
@@ -142,7 +162,7 @@ public partial class MainWindow : Window
     private void ShowAbout()
     {
         MessageBox.Show(
-            "DiskSweep v1.0.0\nClassic Windows Storage Capacity & System Cleaner\n\nFeatures:\n• Real-time drive capacity and free percentage monitoring\n• Safe cache, temporary files, and obsolete update cleaner\n• High-performance large file space analyzer\n• Non-destructive: active and locked files are safely skipped\n\nDesigned for speed, resilience, and clarity.",
+            "DiskSweep v1.1.0\nHigh-Performance Windows Storage Capacity & System Cleaner\n\nFeatures:\n• Non-colliding multi-volume storage & capacity monitor\n• Fast throttled cache, temp, and update cleanup\n• Stationary real-time freed storage feedback (zero text jitter)\n• 4 Visual Themes: Charcoal Dark, OLED Black, Midnight Navy, Matrix Green\n• 24-hour safety cushions & Recycle Bin fallback options\n• Deep space-hog file analyzer\n\nDesigned for speed, resilience, and clarity.",
             "About DiskSweep",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
