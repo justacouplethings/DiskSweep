@@ -5,14 +5,14 @@
 <h1 align="center">DiskSweep</h1>
 
 <p align="center">
-  <strong>Fast, utilitarian storage capacity monitor and zero-harm system cleanup utility for Windows.</strong>
+  <strong>Fast, utilitarian storage capacity monitor and zero-harm system cleanup utility for Windows, macOS, and Linux.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/justacouplethings/DiskSweep/releases/tag/v1.1.1"><img src="https://img.shields.io/badge/release-v1.1.1-blue.svg" alt="Release"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-007acc.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/framework-.NET%2010%20WPF-512bd4.svg" alt="Framework">
-  <img src="https://img.shields.io/badge/privileges-Administrator%20UAC-red.svg" alt="Privileges">
+  <a href="https://github.com/justacouplethings/DiskSweep/releases/tag/v1.2.0"><img src="https://img.shields.io/badge/release-v1.2.0-blue.svg" alt="Release"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-007acc.svg" alt="Platforms">
+  <img src="https://img.shields.io/badge/framework-.NET%2010%20%7C%20Spectre.Console-512bd4.svg" alt="Framework">
+  <img src="https://img.shields.io/badge/privileges-Administrator%20UAC%20%7C%20root-red.svg" alt="Privileges">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
 
@@ -20,34 +20,74 @@
 
 ## 🚀 Overview
 
-**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings high-density, utilitarian productivity with native hardware acceleration, modern dark and light themes, and zero fluff.
+**DiskSweep** is built for power users and sysadmins who demand instant visibility over their storage and swift, zero-harm junk removal. Inspired by classic engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep combines high-density productivity with cross-platform performance:
 
-- **Storage Capacity & Health**: Instant inspection of all active local, external, and removable drives with color-coded health meters and dedicated, non-colliding volume headers.
-- **High-Speed Clean Engine**: Throttled parallel deletion prevents UI lag, executing swift deletions across temp, caches, error dumps, and Windows Update downloads.
-- **Rock-Steady Real-Time Feedback**: Multi-column stationary telemetry separates live freed byte counters from changing filenames, eliminating text jitter during active cleaning sweeps.
-- **Space Analyzer 2.0 with Game File Protection**: Target individual drives or run a full system scan across all drives simultaneously. Groups files into major folders and flags game installations (Steam, Epic, Riot, etc.) with safety warnings to prevent corrupting games.
-- **5 Built-In Visual Themes**: Charcoal Dark, OLED Pure Black, Midnight Navy, Matrix Green, and Classic Light (White Theme) with live dynamic switching.
-- **Fully Themed Win32 Controls**: Sleek modern scrollbars and custom-themed dropdowns with zero white-on-white popups.
-- **Safety Cushion & Recycle Bin Options**: Configurable 24-hour safety cushions, Recycle Bin fallbacks, and confirmation gates.
-- **Always Elevated**: Native UAC manifest (`requireAdministrator`) ensures full read/write access to system-level temp and diagnostic directories.
+- **Universal Multi-Platform Support**: Native Windows WPF desktop application with hardware-accelerated rendering, alongside standalone native CLI binaries for **macOS** (Apple Silicon & Intel) and **Linux** (x64).
+- **Storage Capacity & Health Meters**: Real-time inspection of active drives (NTFS, APFS, ext4, btrfs, FAT32, exFAT) with color-coded health indicators and responsive volume headers.
+- **Deep Clean Engine**: Swiftly purges temporary files, crash dumps, GPU shader caches, browser caches, OS updates, and package manager leftovers (APT, Pacman, DNF, Pip, NPM, Cargo, Homebrew).
+- **Space Analyzer with Direct In-App Deletion**: Scan drives for large space hogs and major directory clusters. Directly delete individual files or clean entire unneeded folders with one click (`🗑️ Delete Selected`, `🗑️ Delete`, `🗑️ Clean Folder`).
+- **Cross-Platform Game Corruption Guard**: Automatically identifies and protects game chunk files (`.pak`, `.ucas`, `.rpf`, `.vpk`) across Steam, Epic Games, Riot, Battle.net, macOS `/Applications`, Linux Flatpak/Snap, and Wine/Proton prefixes.
+- **Stationary Zero-Jitter Telemetry**: Fixed-width telemetry columns separate live reclaimed byte counters from changing file paths, eliminating layout jitter during high-speed sweeps.
+- **5 Built-In Visual Themes**: Charcoal Dark, OLED Pure Black, Midnight Navy, Matrix Green, and Classic Light (White Theme) with custom Win32 scrollbars and dropdowns.
+- **Interactive Terminal Suite (`disksweep`)**: Interactive TUI dashboard powered by `Spectre.Console` for SSH sessions, headless servers, and terminal workflows.
 
 ---
 
-## ⚡ Quick Start (Portable)
+## ⚡ Quick Start
 
-No installation required. 
-
-1. Download [`DiskSweep-v1.1.1-Portable.zip`](release/DiskSweep-v1.1.1-Portable.zip) from the repository.
-2. Extract the archive anywhere (Desktop, USB drive, or Utilities folder).
-3. Run `DiskSweep.exe` (or launch via `run.bat`).
+### 🪟 Windows (Portable GUI App)
+No installation required.
+1. Download [`DiskSweep-v1.2.0-Portable.zip`](https://github.com/justacouplethings/DiskSweep/releases/download/v1.2.0/DiskSweep-v1.2.0-Portable.zip).
+2. Extract the archive anywhere.
+3. Run `DiskSweep.exe` (or launch via `run.bat`). Automatically prompts for Administrator privileges to ensure complete system access.
 
 *(Requires Windows 10/11 and .NET 10 Desktop Runtime)*
 
+### 🍎 macOS & 🐧 Linux (One-Line Installer)
+Install the standalone, zero-dependency `disksweep` binary with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/justacouplethings/DiskSweep/main/install.sh | bash
+```
+
+Or download standalone tarballs directly from [Releases](https://github.com/justacouplethings/DiskSweep/releases/tag/v1.2.0):
+- **macOS Apple Silicon (M1/M2/M3/M4)**: [`DiskSweep-v1.2.0-macOS-arm64.tar.gz`](https://github.com/justacouplethings/DiskSweep/releases/download/v1.2.0/DiskSweep-v1.2.0-macOS-arm64.tar.gz)
+- **macOS Intel (x64)**: [`DiskSweep-v1.2.0-macOS-x64.tar.gz`](https://github.com/justacouplethings/DiskSweep/releases/download/v1.2.0/DiskSweep-v1.2.0-macOS-x64.tar.gz)
+- **Linux (x64)**: [`DiskSweep-v1.2.0-Linux-x64.tar.gz`](https://github.com/justacouplethings/DiskSweep/releases/download/v1.2.0/DiskSweep-v1.2.0-Linux-x64.tar.gz)
+- **Windows CLI**: [`DiskSweep-v1.2.0-Windows-CLI.zip`](https://github.com/justacouplethings/DiskSweep/releases/download/v1.2.0/DiskSweep-v1.2.0-Windows-CLI.zip)
+
 ---
 
-## 🎨 Built-In Themes
+## 💻 Universal CLI Usage (`disksweep`)
 
-DiskSweep includes 5 custom-crafted themes switchable live from the **Settings** tab or the top menu bar:
+The `disksweep` command-line utility provides both an interactive terminal dashboard and non-interactive scriptable subcommands:
+
+```bash
+# Launch interactive terminal dashboard (TUI)
+disksweep
+
+# Display all mounted drives and storage capacity meters
+disksweep drives
+
+# Deep clean junk targets with preview/dry-run
+disksweep clean --dry-run
+
+# Run full deep clean across all targets
+disksweep clean --all
+
+# Clean and send files to Trash / Recycle Bin instead of permanent deletion
+disksweep clean --all --trash
+
+# Analyze large files on current drive (or specify path)
+disksweep analyze
+disksweep analyze /var --min-size=100
+```
+
+---
+
+## 🎨 Built-In GUI Themes
+
+DiskSweep includes 5 custom-crafted themes switchable live from the **Settings** tab or top menu bar:
 
 1. **Charcoal Dark** (Default): Classic Visual Studio dark palette (`#181818` / `#007ACC`).
 2. **OLED Pure Black**: True deep black (`#000000`) with vibrant neon mint accents (`#00FF9D`).
@@ -60,38 +100,34 @@ DiskSweep includes 5 custom-crafted themes switchable live from the **Settings**
 ## 🔍 Features in Detail
 
 ### 1. Drive Capacity & Health Meters
-- Real-time enumeration of all attached drives.
+- Real-time enumeration of all attached drives across Windows drive letters, macOS `/Volumes`, and Linux mount points.
+- Filters out virtual pseudo-filesystems (`tmpfs`, `devtmpfs`, `sysfs`, `proc`, `squashfs`, `overlay`).
 - Dynamic color-coded capacity meters:
   - 🟢 **Healthy**: > 20% free space remaining
   - 🟠 **Warning**: 10% – 20% free space remaining
   - 🔴 **Critical**: < 10% free space remaining
-- Non-colliding responsive layout displaying total storage pool, free capacity, filesystem (NTFS, FAT32, exFAT), and volume labels.
-- One-click context menu to explore drives in File Explorer or launch Windows Disk Management / Storage Sense.
+- Non-colliding responsive layout displaying total storage pool, free capacity, filesystem, and volume labels.
 
 ### 2. Multi-Target Safe Cleanup Engine
-Cleans junk without breaking Windows or user applications:
-- **System Temporary Files**: `%TEMP%`, Windows System Temp (`C:\Windows\Temp`), and Prefetch traces.
-- **Windows Updates & Diagnostics**: Downloaded Windows Update cache (`SoftwareDistribution\Download`), Windows Error Reporting (WER) logs, user-mode crash dumps, and BSOD kernel minidumps.
+Cleans junk without breaking applications or user configurations:
+- **System Temporary Files**: Windows `%TEMP%`, `C:\Windows\Temp`, Prefetch, macOS `/tmp`, Linux `/tmp`.
+- **System Logs & Diagnostics**: Windows Error Reporting (WER) logs, crash dumps, kernel minidumps, macOS `DiagnosticReports`, Linux `/var/log` and `/var/crash`.
 - **Graphics & Shader Caches**: DirectX 11/12 GPU caches (`D3DSCache`), NVIDIA DXCache/GLCache, and AMD Radeon shader pipelines.
-- **Web Browser Caches**: Google Chrome, Microsoft Edge, Brave Browser, Mozilla Firefox, Opera, and Opera GX HTTP and GPU caches (passwords, logins, and history are never touched).
-- **Application & Gaming Caches**: Discord media and code caches, Steam CEF browser cache, Spotify stream cache.
-- **Developer Package Caches**: Python Pip cache, Node.js NPM cache, and Rust Cargo registry cache.
-- **Windows Recycle Bin**: Integrated shell API to query and empty discarded items across all volumes.
+- **Web Browser Caches**: Google Chrome, Apple Safari, Microsoft Edge, Brave Browser, Mozilla Firefox, Opera, and Opera GX HTTP and GPU caches (passwords, logins, and history are never touched).
+- **Application & Gaming Caches**: Discord media/code caches, Steam CEF web cache, Spotify stream cache, Xcode `DerivedData` & `iOS DeviceSupport`.
+- **Package Manager Caches**: APT archives (`/var/cache/apt/archives`), Pacman pkg (`/var/cache/pacman/pkg`), DNF cache (`/var/cache/dnf`), Python Pip, Node.js NPM, Rust Cargo, and Homebrew cache.
+- **Trash & Recycle Bin**: Native shell integration for Windows Recycle Bin, macOS `~/.Trash`, and Linux FreeDesktop XDG Trash.
 
-### 3. Space Analyzer 2.0 (Large Files & Directory Clusters)
+### 3. Space Analyzer with Direct Deletion & Game Guard
 - **Drive Target Scope**: Scan a specific local drive or select `🌐 All Drives (Full System Scan)`.
-- **Game Corruption Safeguard**: Analyzes directory context and tags files from Steam, Epic Games, Riot, Battle.net, and Windows with 🔴 **HIGH RISK** badges to warn users against breaking installed games.
-- **Major Folder Clustering**: Switch between individual files and `📁 Major Folders` to see which root folders consume the most space.
-- Configurable minimum size filter (25 MB, 50 MB, 100 MB, 250 MB, 500 MB, 1 GB).
-- Context menu allows moving forgotten files directly to the Recycle Bin or jumping to their folder in Explorer.
-
-### 4. Interactive Execution & Audit Log
-- Rock-steady status bar displaying live freed bytes and deleted item counters in dedicated, fixed-width columns.
-- Monospace execution console recording every operation, deleted count, locked items skipped, and exact bytes reclaimed.
+- **Direct File & Folder Deletion**: Delete space hogs directly inside the UI via inline `🗑️ Delete` row buttons or `🗑️ Delete Selected` toolbar button.
+- **Major Folder Clustering**: Switch between individual files and `📁 Major Folders` with `🗑️ Clean Folder` actions.
+- **Game Corruption Safeguard**: Analyzes directory context and tags game assets (Steam, Epic, Riot, Blizzard, Flatpak, Wine/Proton) with 🔴 **HIGH RISK** badges to warn users against corrupting installed games.
+- **Dynamic Parent Metric Sync**: Deleting individual files dynamically updates parent directory sizes and file counters in real time.
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## ⌨️ Keyboard Shortcuts (Windows GUI)
 
 | Shortcut | Description |
 |---|---|
@@ -99,6 +135,7 @@ Cleans junk without breaking Windows or user applications:
 | `Ctrl + R` | Refresh Drives and Storage Statistics |
 | `Ctrl + A` | Select All Cleanable Targets |
 | `Ctrl + ,` | Open Settings & Personalization |
+| `Del` | Delete Selected Large File |
 | `Esc` | Cancel Active Scan or Deletion |
 | `F1` | About DiskSweep |
 
@@ -106,20 +143,25 @@ Cleans junk without breaking Windows or user applications:
 
 ## 🛠️ Building from Source
 
+### Windows WPF Application:
 ```cmd
 git clone https://github.com/justacouplethings/DiskSweep.git
 cd DiskSweep
 dotnet build -c Release
 ```
+Output executable: `bin\Release\net10.0-windows\DiskSweep.exe`
 
-The output binary will be located at:
-`bin\Release\net10.0-windows\DiskSweep.exe`
+### Cross-Platform CLI Tool (`disksweep`):
+```bash
+# Build standalone native binary for your current OS:
+dotnet publish DiskSweep.Cli -c Release --self-contained -p:PublishSingleFile=true -o publish/
+```
 
 ---
 
 ## 📜 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release history, safety improvements, and visual updates.
+See [CHANGELOG.md](CHANGELOG.md) for the full release history, cross-platform notes, and safety improvements.
 
 ---
 

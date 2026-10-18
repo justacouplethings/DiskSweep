@@ -5,14 +5,14 @@
 <h1 align="center">DiskSweep</h1>
 
 <p align="center">
-  <strong>Fast, utilitarian storage capacity monitor and zero-harm system cleanup utility for Windows.</strong>
+  <strong>Fast, utilitarian storage capacity monitor and zero-harm system cleanup utility for Windows, macOS, and Linux.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/justacouplethings/DiskSweep/releases"><img src="https://img.shields.io/badge/release-v1.1.1-blue.svg" alt="Release"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-007acc.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/framework-.NET%2010%20WPF-512bd4.svg" alt="Framework">
-  <img src="https://img.shields.io/badge/privileges-Administrator%20UAC-red.svg" alt="Privileges">
+  <a href="https://github.com/justacouplethings/DiskSweep/releases"><img src="https://img.shields.io/badge/release-v1.2.0-blue.svg" alt="Release"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20%7C%20macOS%20%7C%20Linux-007acc.svg" alt="Platform">
+  <img src="https://img.shields.io/badge/framework-.NET%2010%20WPF%20%7C%20Core-512bd4.svg" alt="Framework">
+  <img src="https://img.shields.io/badge/privileges-Administrator%20UAC%20%7C%20root-red.svg" alt="Privileges">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
 
@@ -20,15 +20,17 @@
 
 ## 🚀 Overview
 
-**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings that utilitarian, high-density productivity into a modern, sleek multi-theme UI.
+**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings high-density, utilitarian productivity with native hardware acceleration, modern dark and light themes, and zero fluff.
 
 - **Storage Capacity & Health**: Instant inspection of all active local, external, and removable drives with responsive non-colliding capacity meters.
 - **Deep Clean Engine**: Scans safe-to-delete temporary files, crash dumps, shader caches, browser caches, Windows Update leftovers, and package manager artifacts.
+- **Direct File & Folder Deletion**: Delete space hogs and unneeded folders directly inside the Space Analyzer without leaving DiskSweep.
+- **Game Corruption Safety Guard**: Automatic classification of game chunks (`.pak`, `.ucas`, `.rpf`, `.vpk`) inside Steam, Epic Games, Riot, and Blizzard libraries with protective confirmation prompts.
 - **Stationary Telemetry**: Zero text jitter during active sweeps; fixed-column layout for cleaned bytes, deleted file count, and operation status.
-- **Space Analyzer 2.0**: Drive target selection (individual drive or all drives system scan), major folder aggregation, and game corruption safety protection.
 - **5 Sleek Themes**: Charcoal Dark, OLED Pure Black, Midnight Navy, Matrix Green, and Classic Light (White Theme).
 - **Fully Themed Win32 Controls**: Sleek modern scrollbars and themed dropdowns with zero white-on-white rendering bugs.
 - **Always Elevated**: Native UAC manifest (`requireAdministrator`) ensures full access to system-level temp and diagnostic directories.
+- **Cross-Platform**: Windows WPF desktop GUI + cross-platform CLI for macOS and Linux.
 
 ---
 
@@ -36,7 +38,7 @@
 
 No installation required. 
 
-1. Download [`DiskSweep-v1.1.1-Portable.zip`](release/DiskSweep-v1.1.1-Portable.zip) from the repository.
+1. Download [`DiskSweep-v1.2.0-Portable.zip`](release/DiskSweep-v1.2.0-Portable.zip) from the repository.
 2. Extract the archive.
 3. Run `DiskSweep.exe` (or launch via `run.bat`).
 
@@ -65,10 +67,10 @@ Cleans junk without breaking Windows or user applications:
 - **Developer Package Caches**: Python Pip cache, Node.js NPM cache, and Rust Cargo registry cache.
 - **Windows Recycle Bin**: Integrated shell API to query and empty discarded items across all volumes.
 
-### 3. Space Analyzer (Large Files)
-- Scans any selected drive for the top 100 largest files (>50 MB).
-- Sorts by size and displays file name, extension, last modified date, and path.
-- Context menu allows moving large forgotten files directly to the Recycle Bin or jumping to their folder in Explorer.
+### 3. Space Analyzer (Direct Deletion & Safety Guard)
+- Scans any selected drive or all drives for large files and major folders.
+- Delete individual files or entire folders directly from the data grid or toolbar (`🗑️ Delete Selected`, `🗑️ Delete File`, `🗑️ Clean Folder`).
+- Built-in Game Corruption Guard warns and protects against inadvertent deletions in game directories.
 
 ### 4. Interactive Execution & Audit Log
 - High-contrast monospace log detailing every path scanned, bytes reclaimed, and active files skipped.

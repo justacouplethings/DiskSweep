@@ -53,6 +53,7 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand ScanLargeFilesCommand { get; }
     public ICommand OpenFolderCommand { get; }
     public ICommand DeleteLargeFileCommand { get; }
+    public ICommand DeleteLargeFolderCommand { get; }
     public ICommand OpenDriveInExplorerCommand { get; }
     public ICommand SelectCleanItemCommand { get; }
     public ICommand OpenSettingsCommand { get; }
@@ -69,7 +70,8 @@ public class MainViewModel : INotifyPropertyChanged
         CancelOperationCommand = new RelayCommand(() => CancelCurrentOperation(), () => IsBusy);
         ScanLargeFilesCommand = new RelayCommand(async () => await ScanLargeFilesAsync(), () => !IsBusy);
         OpenFolderCommand = new RelayCommand(param => OpenFolderInExplorer(param));
-        DeleteLargeFileCommand = new RelayCommand(param => DeleteLargeFile(param as LargeFileItem));
+        DeleteLargeFileCommand = new RelayCommand(param => DeleteLargeFile(param as LargeFileItem ?? SelectedLargeFile));
+        DeleteLargeFolderCommand = new RelayCommand(param => DeleteLargeFolder(param as LargeFolderItem ?? SelectedLargeFolder));
         OpenDriveInExplorerCommand = new RelayCommand(param => OpenDrive(param as DriveItem ?? SelectedDrive));
         SelectCleanItemCommand = new RelayCommand(param =>
         {
@@ -864,9 +866,34 @@ public class MainViewModel : INotifyPropertyChanged
         }
 
         bool ok = NativeMethods.MoveToRecycleBin(item.FilePath);
+        if (!ok && File.Exists(item.FilePath))
+        {
+            try
+            {
+                File.Delete(item.FilePath);
+                ok = true;
+            }
+            catch { }
+        }
+
         if (ok || !File.Exists(item.FilePath))
         {
             LargeFiles.Remove(item);
+
+            // Synchronize parent folder metrics in LargeFolders
+            var parentFolder = LargeFolders.FirstOrDefault(f =>
+                item.DirectoryPath.Equals(f.FolderPath, StringComparison.OrdinalIgnoreCase) ||
+                item.DirectoryPath.StartsWith(f.FolderPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
+            if (parentFolder != null)
+            {
+                parentFolder.FileCount--;
+                parentFolder.TotalBytes -= item.Size;
+                if (parentFolder.FileCount <= 0)
+                {
+                    LargeFolders.Remove(parentFolder);
+                }
+            }
+
             AddLog($"Removed file: {item.FilePath} ({item.SizeFormatted})");
             RefreshDrives();
         }
@@ -874,6 +901,74 @@ public class MainViewModel : INotifyPropertyChanged
         {
             MessageBox.Show("Could not delete file. It may be locked by an active process.", "DiskSweep", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private void DeleteLargeFolder(LargeFolderItem? folder)
+    {
+        if (folder == null) return;
+
+        // Anti-Corruption Safety Guard for Folders
+        if (folder.IsHighRisk)
+        {
+            var warningRes = MessageBox.Show(
+                $"⚠️ HIGH RISK OF APPLICATION/GAME CORRUPTION\n\n" +
+                $"Folder: {folder.FolderName}\n" +
+                $"Context: {folder.Category}\n" +
+                $"Path: {folder.FolderPath}\n" +
+                $"Total Size: {folder.TotalSizeFormatted} ({folder.FileCount} large files)\n\n" +
+                $"This directory contains core engine files or assets for an installed game or application.\n" +
+                $"Deleting files inside this folder WILL CORRUPT THE GAME OR APP!\n\n" +
+                $"If you are trying to free up disk space, please uninstall the game properly via its launcher (Steam, Epic, Riot, etc.) or Windows Settings.\n\n" +
+                $"Are you ABSOLUTELY POSITIVE you want to delete the cataloged files in this folder?",
+                "DiskSweep - Game & System Protection Guard",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Stop);
+
+            if (warningRes != MessageBoxResult.Yes) return;
+        }
+        else
+        {
+            var res = MessageBox.Show(
+                $"Delete all {folder.FileCount} cataloged large files in folder?\n\n{folder.FolderName}\nPath: {folder.FolderPath}\nTotal Size: {folder.TotalSizeFormatted}\n\nFiles will be moved to Recycle Bin.",
+                "Confirm Folder Cleanup",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res != MessageBoxResult.Yes) return;
+        }
+
+        var matchingFiles = LargeFiles
+            .Where(f => f.DirectoryPath.Equals(folder.FolderPath, StringComparison.OrdinalIgnoreCase) ||
+                        f.DirectoryPath.StartsWith(folder.FolderPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        int deletedCount = 0;
+        long deletedBytes = 0;
+
+        foreach (var file in matchingFiles)
+        {
+            bool ok = NativeMethods.MoveToRecycleBin(file.FilePath);
+            if (!ok && File.Exists(file.FilePath))
+            {
+                try
+                {
+                    File.Delete(file.FilePath);
+                    ok = true;
+                }
+                catch { }
+            }
+
+            if (ok || !File.Exists(file.FilePath))
+            {
+                LargeFiles.Remove(file);
+                deletedCount++;
+                deletedBytes += file.Size;
+            }
+        }
+
+        LargeFolders.Remove(folder);
+        AddLog($"Folder cleanup completed: {folder.FolderName} — {deletedCount} files removed, {DriveItem.FormatBytes(deletedBytes)} reclaimed.");
+        RefreshDrives();
     }
 
     private void OpenDrive(DriveItem? drive)

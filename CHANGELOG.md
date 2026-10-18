@@ -4,6 +4,43 @@ All notable changes to the **DiskSweep** project will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-18
+
+### 🍎 Native macOS Support
+- **Cross-Platform Storage Engine**: Real-time inspection and capacity metrics for APFS container partitions, Macintosh HD root volumes, and external drives attached under `/Volumes`.
+- **macOS Targeted Cleaners**:
+  - User and System Caches (`~/Library/Caches`, `/Library/Caches`).
+  - Application Caches for Google Chrome, Apple Safari, Mozilla Firefox, Microsoft Edge, Discord, Spotify, and Homebrew.
+  - Xcode Developer Cache (`~/Library/Developer/Xcode/DerivedData`, `iOS DeviceSupport`).
+  - Crash logs and analytics (`~/Library/Logs`, `/Library/Logs/DiagnosticReports`).
+  - Native macOS Trash (`~/.Trash`).
+- **Apple Silicon & Intel Binaries**: Native standalone pre-compiled single-file binaries for `macos-arm64` (Apple Silicon M1/M2/M3/M4) and `macos-x64` (Intel Mac).
+
+### 🐧 Native Linux Support
+- **Unix Storage Engine & Mount Filtration**: Enumeration of physical ext4, btrfs, xfs, zfs, and f2fs filesystems while filtering out virtual pseudo-filesystems (`tmpfs`, `devtmpfs`, `sysfs`, `proc`, `squashfs`, `overlay`).
+- **Linux Targeted Cleaners**:
+  - Standard user cache (`~/.cache`).
+  - Linux application caches for Chrome, Firefox, Discord, Spotify, and system thumbnailers.
+  - System logs & diagnostic crash dumps (`/var/log`, `/var/crash`).
+  - Package manager archive caches for APT (`/var/cache/apt/archives`), Pacman (`/var/cache/pacman/pkg`), and DNF/Fedora (`/var/cache/dnf`).
+  - FreeDesktop XDG Trash standard compliance (`~/.local/share/Trash/files` and metadata `.trashinfo` purging).
+- **Standalone Linux Binary**: Native single-file binary for `linux-x64` requiring zero external .NET dependencies.
+
+### 🗑️ Space Analyzer Direct File & Folder Deletion
+- **Direct Deletion Controls**: Added direct file deletion to the File Analyzer DataGrid via an inline `🗑️ Delete` button on every row, plus a global `🗑️ Delete Selected` toolbar button with confirmation dialog.
+- **Folder Cleanup Actions**: Added `🗑️ Clean Folder` button to the `📁 Major Folders` DataGrid and right-click context menu, allowing users to safely purge entire unneeded directories without leaving the app.
+- **Dynamic Parent Metric Synchronization**: Deleting a file dynamically decrements its parent folder's tracked size and file count in the UI, keeping the Major Folders view synchronized in real time.
+- **Trash & Recycle Bin Routing with Fallback**: Deletions route through the platform's native trash bin (Recycle Bin on Windows, `~/.Trash` on macOS, XDG Trash on Linux) with automatic permanent deletion fallback when trashes are unavailable.
+- **Cross-Platform Game Corruption Protection**: Extended the game and application protection interceptor across Windows (Steam, Epic, Riot, Xbox, Blizzard), macOS (`/Applications`, Steam app support), and Linux (`~/.local/share/Steam`, Flatpak, Snap, Wine/Proton prefixes).
+
+### ⚡ Universal Cross-Platform CLI Suite (`disksweep`)
+- **Interactive Terminal Dashboard**: Full interactive TUI powered by `Spectre.Console` featuring color-coded capacity meters, deep clean multi-select checklist, and space analyzer.
+- **Scriptable Automation Commands**:
+  - `disksweep drives`: Table overview of storage capacity, format, free percentage, and health status.
+  - `disksweep clean [--all] [--dry-run] [--trash]`: Automated command-line junk removal with dry-run previews.
+  - `disksweep analyze [path] [--min-size=MB]`: Scan and inspect space hogs directly in the terminal.
+- **One-Liner Install Script**: Provided `install.sh` for instant curl/wget installation on macOS and Linux.
+
 ---
 
 ## [1.1.1] - 2026-10-18

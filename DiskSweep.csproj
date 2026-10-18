@@ -12,12 +12,19 @@
     <Company>DiskSweep Project</Company>
     <Product>DiskSweep</Product>
     <Description>High-performance Windows Storage Capacity &amp; System Cleanup Utility</Description>
-    <Version>1.1.1</Version>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <ApplicationIcon>Assets\app_icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DiskSweep.Core\**" />
+    <Compile Remove="DiskSweep.Cli\**" />
+    <None Remove="DiskSweep.Core\**" />
+    <None Remove="DiskSweep.Cli\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Assets\app_icon.png" />

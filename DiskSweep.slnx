@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DiskSweep.Cli/DiskSweep.Cli.csproj" />
+  <Project Path="DiskSweep.Core/DiskSweep.Core.csproj" />
+  <Project Path="DiskSweep.csproj" />
+</Solution>

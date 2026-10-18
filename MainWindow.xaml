@@ -418,6 +418,15 @@
                                 <!-- View Mode Selector -->
                                 <RadioButton Content="📄 Individual Files" IsChecked="{Binding ShowLargeFilesView}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                 <RadioButton Content="📁 Major Folders" IsChecked="{Binding ShowLargeFoldersView}" VerticalAlignment="Center"/>
+
+                                <Separator Style="{x:Null}" Width="1" Background="{DynamicResource BorderDarkBrush}" Margin="12,2"/>
+
+                                <!-- Direct Action Toolbar Button -->
+                                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding DeleteLargeFileCommand}" ToolTip="Delete selected file (Move to Recycle Bin)">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🗑️ Delete Selected" Foreground="#FF6B6B" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
 
                             <TextBlock DockPanel.Dock="Right" Text="{Binding LargeFiles.Count, StringFormat={}{0} items cataloged}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -435,6 +444,25 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
+                            <!-- Action Column: Direct Delete Button -->
+                            <DataGridTemplateColumn Header="Action" Width="95">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="{x:Type models:LargeFileItem}">
+                                        <Button Content="🗑️ Delete" 
+                                                Padding="6,2" 
+                                                FontSize="11"
+                                                FontWeight="SemiBold"
+                                                Foreground="#FF6B6B"
+                                                Background="{DynamicResource PanelDarkBrush}"
+                                                BorderBrush="{DynamicResource BorderDarkBrush}"
+                                                Cursor="Hand"
+                                                Command="{Binding DataContext.DeleteLargeFileCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Delete this file (Prompt for confirmation &amp; move to Recycle Bin)"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <!-- Risk Badge Column -->
                             <DataGridTemplateColumn Header="Safety Status" Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -462,9 +490,29 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
                                 <MenuItem Header="Open Folder in File Explorer" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding SelectedLargeFolder}"/>
+                                <MenuItem Header="Delete Cataloged Files in this Folder" Command="{Binding DeleteLargeFolderCommand}" CommandParameter="{Binding SelectedLargeFolder}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
+                            <!-- Action Column: Clean Folder Button -->
+                            <DataGridTemplateColumn Header="Action" Width="115">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="{x:Type models:LargeFolderItem}">
+                                        <Button Content="🗑️ Clean Folder" 
+                                                Padding="6,2" 
+                                                FontSize="11"
+                                                FontWeight="SemiBold"
+                                                Foreground="#FF6B6B"
+                                                Background="{DynamicResource PanelDarkBrush}"
+                                                BorderBrush="{DynamicResource BorderDarkBrush}"
+                                                Cursor="Hand"
+                                                Command="{Binding DataContext.DeleteLargeFolderCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip="Delete all cataloged large files in this folder"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <!-- Risk Badge Column -->
                             <DataGridTemplateColumn Header="Category" Width="170">
                                 <DataGridTemplateColumn.CellTemplate>

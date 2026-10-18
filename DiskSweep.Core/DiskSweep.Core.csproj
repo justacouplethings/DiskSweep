@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DiskSweep.Core</AssemblyName>
+    <RootNamespace>DiskSweep.Core</RootNamespace>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <Description>Cross-platform storage monitor, multi-target cleaner, and space analyzer core for Windows, macOS, and Linux.</Description>
+  </PropertyGroup>
+
+</Project>
