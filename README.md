@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/justacouplethings/DiskSweep/releases/tag/v1.1.0"><img src="https://img.shields.io/badge/release-v1.1.0-blue.svg" alt="Release"></a>
+  <a href="https://github.com/justacouplethings/DiskSweep/releases/tag/v1.1.1"><img src="https://img.shields.io/badge/release-v1.1.1-blue.svg" alt="Release"></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-007acc.svg" alt="Platform">
   <img src="https://img.shields.io/badge/framework-.NET%2010%20WPF-512bd4.svg" alt="Framework">
   <img src="https://img.shields.io/badge/privileges-Administrator%20UAC-red.svg" alt="Privileges">
@@ -20,15 +20,16 @@
 
 ## 🚀 Overview
 
-**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings high-density, utilitarian productivity with native hardware acceleration, modern dark themes, and zero fluff.
+**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings high-density, utilitarian productivity with native hardware acceleration, modern dark and light themes, and zero fluff.
 
 - **Storage Capacity & Health**: Instant inspection of all active local, external, and removable drives with color-coded health meters and dedicated, non-colliding volume headers.
 - **High-Speed Clean Engine**: Throttled parallel deletion prevents UI lag, executing swift deletions across temp, caches, error dumps, and Windows Update downloads.
-- **Rock-Steady Real-Time Feedback**: Multi-column telemetry separates live freed byte counters from changing filenames, eliminating text jitter during cleaning.
-- **Personalized Visual Themes**: 4 built-in high-contrast themes (Charcoal Dark, OLED Pure Black, Midnight Navy, and Matrix Green) with live dynamic switching.
+- **Rock-Steady Real-Time Feedback**: Multi-column stationary telemetry separates live freed byte counters from changing filenames, eliminating text jitter during active cleaning sweeps.
+- **Space Analyzer 2.0 with Game File Protection**: Target individual drives or run a full system scan across all drives simultaneously. Groups files into major folders and flags game installations (Steam, Epic, Riot, etc.) with safety warnings to prevent corrupting games.
+- **5 Built-In Visual Themes**: Charcoal Dark, OLED Pure Black, Midnight Navy, Matrix Green, and Classic Light (White Theme) with live dynamic switching.
+- **Fully Themed Win32 Controls**: Sleek modern scrollbars and custom-themed dropdowns with zero white-on-white popups.
 - **Safety Cushion & Recycle Bin Options**: Configurable 24-hour safety cushions, Recycle Bin fallbacks, and confirmation gates.
-- **Top Space Hogs Analyzer**: Quickly finds the top 100 largest files on any drive with quick Explorer and Recycle Bin actions.
-- **Always Elevated**: Pre-configured with native UAC manifest (`requireAdministrator`) to ensure full read/write access to system-level temp and diagnostic directories.
+- **Always Elevated**: Native UAC manifest (`requireAdministrator`) ensures full read/write access to system-level temp and diagnostic directories.
 
 ---
 
@@ -36,7 +37,7 @@
 
 No installation required. 
 
-1. Download [`DiskSweep-v1.1.0-Portable.zip`](release/DiskSweep-v1.1.0-Portable.zip) from the repository.
+1. Download [`DiskSweep-v1.1.1-Portable.zip`](release/DiskSweep-v1.1.1-Portable.zip) from the repository.
 2. Extract the archive anywhere (Desktop, USB drive, or Utilities folder).
 3. Run `DiskSweep.exe` (or launch via `run.bat`).
 
@@ -46,12 +47,13 @@ No installation required.
 
 ## 🎨 Built-In Themes
 
-DiskSweep includes 4 custom-crafted themes switchable live from the **Settings** tab:
+DiskSweep includes 5 custom-crafted themes switchable live from the **Settings** tab or the top menu bar:
 
 1. **Charcoal Dark** (Default): Classic Visual Studio dark palette (`#181818` / `#007ACC`).
 2. **OLED Pure Black**: True deep black (`#000000`) with vibrant neon mint accents (`#00FF9D`).
 3. **Midnight Navy**: Nord-inspired cyber night navy (`#0B0F17` / `#3B82F6`).
 4. **Matrix Green**: High-contrast terminal emerald dark (`#060A06` / `#10B981`).
+5. **Classic Light**: Clean white aesthetic (`#F4F5F7` / `#0066CC`) with dark typography for bright environments.
 
 ---
 
@@ -76,11 +78,12 @@ Cleans junk without breaking Windows or user applications:
 - **Developer Package Caches**: Python Pip cache, Node.js NPM cache, and Rust Cargo registry cache.
 - **Windows Recycle Bin**: Integrated shell API to query and empty discarded items across all volumes.
 
-### 3. Space Analyzer (Large Files)
-- Scans any selected drive for the top 100 largest files.
+### 3. Space Analyzer 2.0 (Large Files & Directory Clusters)
+- **Drive Target Scope**: Scan a specific local drive or select `🌐 All Drives (Full System Scan)`.
+- **Game Corruption Safeguard**: Analyzes directory context and tags files from Steam, Epic Games, Riot, Battle.net, and Windows with 🔴 **HIGH RISK** badges to warn users against breaking installed games.
+- **Major Folder Clustering**: Switch between individual files and `📁 Major Folders` to see which root folders consume the most space.
 - Configurable minimum size filter (25 MB, 50 MB, 100 MB, 250 MB, 500 MB, 1 GB).
-- Sorts by size and displays file name, extension, last modified date, and path.
-- Context menu allows moving large forgotten files directly to the Recycle Bin or jumping to their folder in Explorer.
+- Context menu allows moving forgotten files directly to the Recycle Bin or jumping to their folder in Explorer.
 
 ### 4. Interactive Execution & Audit Log
 - Rock-steady status bar displaying live freed bytes and deleted item counters in dedicated, fixed-width columns.
@@ -111,6 +114,12 @@ dotnet build -c Release
 
 The output binary will be located at:
 `bin\Release\net10.0-windows\DiskSweep.exe`
+
+---
+
+## 📜 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history, safety improvements, and visual updates.
 
 ---
 

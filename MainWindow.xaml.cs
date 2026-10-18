@@ -162,7 +162,7 @@ public partial class MainWindow : Window
     private void ShowAbout()
     {
         MessageBox.Show(
-            "DiskSweep v1.1.0\nHigh-Performance Windows Storage Capacity & System Cleaner\n\nFeatures:\n• Non-colliding multi-volume storage & capacity monitor\n• Fast throttled cache, temp, and update cleanup\n• Stationary real-time freed storage feedback (zero text jitter)\n• 4 Visual Themes: Charcoal Dark, OLED Black, Midnight Navy, Matrix Green\n• 24-hour safety cushions & Recycle Bin fallback options\n• Deep space-hog file analyzer\n\nDesigned for speed, resilience, and clarity.",
+            "DiskSweep v1.1.1\nHigh-Performance Windows Storage Capacity & System Cleaner\n\nFeatures:\n• Non-colliding multi-volume storage & capacity monitor\n• Fast throttled cache, temp, and update cleanup\n• Stationary real-time freed storage feedback (zero text jitter)\n• 5 Visual Themes: Charcoal Dark, OLED Black, Midnight Navy, Matrix Green, Classic Light\n• Space Analyzer 2.0 with Game Corruption Protection & Risk Badges\n• Multi-Target Drive Scope: Local Drive or All Drives (Full System Scan)\n• Fully themed ComboBox dropdowns and sleek custom ScrollBars\n• 24-hour safety cushions & Recycle Bin fallback options\n\nDesigned for speed, resilience, and clarity.",
             "About DiskSweep",
             MessageBoxButton.OK,
             MessageBoxImage.Information);

@@ -28,14 +28,19 @@ public class MainViewModel : INotifyPropertyChanged
     private double _progressValue;
     private bool _progressIsIndeterminate;
     private DriveItem? _selectedDrive;
+    private string _selectedDriveTarget = "🌐 All Drives (Full System Scan)";
     private CleanCategory? _selectedCategory;
     private CleanItem? _selectedCleanItem;
     private LargeFileItem? _selectedLargeFile;
+    private LargeFolderItem? _selectedLargeFolder;
     private int _selectedTabIndex = 0;
+    private int _spaceAnalyzerViewIndex = 0; // 0: Large Files, 1: Top Folders
 
     public ObservableCollection<DriveItem> Drives { get; } = new();
+    public ObservableCollection<string> DriveTargetOptions { get; } = new();
     public ObservableCollection<CleanCategory> Categories { get; } = new();
     public ObservableCollection<LargeFileItem> LargeFiles { get; } = new();
+    public ObservableCollection<LargeFolderItem> LargeFolders { get; } = new();
     public ObservableCollection<string> LogEntries { get; } = new();
 
     public ICommand ScanCleanableCommand { get; }
@@ -88,6 +93,45 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 _selectedTabIndex = value;
                 OnPropertyChanged();
+            }
+        }
+    }
+
+    public int SpaceAnalyzerViewIndex
+    {
+        get => _spaceAnalyzerViewIndex;
+        set
+        {
+            if (_spaceAnalyzerViewIndex != value)
+            {
+                _spaceAnalyzerViewIndex = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowLargeFilesView));
+                OnPropertyChanged(nameof(ShowLargeFoldersView));
+            }
+        }
+    }
+
+    public bool ShowLargeFilesView
+    {
+        get => _spaceAnalyzerViewIndex == 0;
+        set
+        {
+            if (value && _spaceAnalyzerViewIndex != 0)
+            {
+                SpaceAnalyzerViewIndex = 0;
+            }
+        }
+    }
+
+    public bool ShowLargeFoldersView
+    {
+        get => _spaceAnalyzerViewIndex == 1;
+        set
+        {
+            if (value && _spaceAnalyzerViewIndex != 1)
+            {
+                SpaceAnalyzerViewIndex = 1;
             }
         }
     }
@@ -226,6 +270,19 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public string SelectedDriveTarget
+    {
+        get => _selectedDriveTarget;
+        set
+        {
+            if (_selectedDriveTarget != value)
+            {
+                _selectedDriveTarget = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public CleanCategory? SelectedCategory
     {
         get => _selectedCategory;
@@ -260,6 +317,19 @@ public class MainViewModel : INotifyPropertyChanged
             if (_selectedLargeFile != value)
             {
                 _selectedLargeFile = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public LargeFolderItem? SelectedLargeFolder
+    {
+        get => _selectedLargeFolder;
+        set
+        {
+            if (_selectedLargeFolder != value)
+            {
+                _selectedLargeFolder = value;
                 OnPropertyChanged();
             }
         }
@@ -393,7 +463,7 @@ public class MainViewModel : INotifyPropertyChanged
             Categories.Add(cat);
         }
 
-        AddLog($"DiskSweep initialized. Active theme: {SelectedTheme}. Monitored drives: {Drives.Count}.");
+        AddLog($"DiskSweep v1.1.1 initialized. Active theme: {SelectedTheme}. Monitored drives: {Drives.Count}.");
     }
 
     public void SaveSettings()
@@ -405,15 +475,25 @@ public class MainViewModel : INotifyPropertyChanged
     public void RefreshDrives()
     {
         Drives.Clear();
+        DriveTargetOptions.Clear();
+
+        DriveTargetOptions.Add("🌐 All Drives (Full System Scan)");
+
         var driveList = _driveService.GetDrives();
         foreach (var d in driveList)
         {
             Drives.Add(d);
+            DriveTargetOptions.Add(d.DisplayTitle);
         }
 
         if (SelectedDrive == null && Drives.Count > 0)
         {
             SelectedDrive = Drives[0];
+        }
+
+        if (string.IsNullOrEmpty(SelectedDriveTarget) || !DriveTargetOptions.Contains(SelectedDriveTarget))
+        {
+            SelectedDriveTarget = DriveTargetOptions[0];
         }
 
         OnPropertyChanged(nameof(TotalDrivesCount));
@@ -605,13 +685,25 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (IsBusy) return;
 
-        string targetRoot = SelectedDrive?.Name ?? "C:\\";
+        List<string> targetRoots = new();
+
+        if (SelectedDriveTarget.Contains("All Drives"))
+        {
+            targetRoots.AddRange(Drives.Select(d => d.Name));
+        }
+        else
+        {
+            var match = Drives.FirstOrDefault(d => d.DisplayTitle == SelectedDriveTarget);
+            targetRoots.Add(match?.Name ?? SelectedDrive?.Name ?? "C:\\");
+        }
+
+        string targetSummary = targetRoots.Count > 1 ? "All Drives" : targetRoots[0];
 
         IsScanning = true;
         ProgressIsIndeterminate = true;
-        LiveActionText = $"Scanning {targetRoot} for large files...";
-        StatusMessage = $"Scanning {targetRoot} for top large files...";
-        AddLog($"Starting deep large-file scan on {targetRoot} (Threshold: >{LargeFileSizeThresholdMB} MB)...");
+        LiveActionText = $"Scanning {targetSummary} for large files...";
+        StatusMessage = $"Scanning {targetSummary} for top large files...";
+        AddLog($"Starting deep large-file scan on {targetSummary} (Filter threshold: >= {LargeFileSizeThresholdMB} MB)...");
 
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
@@ -619,6 +711,8 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             LargeFiles.Clear();
+            LargeFolders.Clear();
+
             var progress = new Progress<LargeFileScannerService.ScanProgress>(p =>
             {
                 LiveActionText = $"Analyzing: {Path.GetFileName(p.CurrentFolder)}";
@@ -628,18 +722,23 @@ public class MainViewModel : INotifyPropertyChanged
             });
 
             long minSize = (long)LargeFileSizeThresholdMB * 1024 * 1024;
-            var results = await _largeFileScanner.ScanTopLargeFilesAsync(targetRoot, minSize, 100, progress, ct);
+            var result = await _largeFileScanner.ScanSpaceAsync(targetRoots, minSize, 100, progress, ct);
 
-            foreach (var f in results)
+            foreach (var f in result.Files)
             {
                 LargeFiles.Add(f);
             }
 
-            AddLog($"Large files scan completed. Found {LargeFiles.Count} files >= {LargeFileSizeThresholdMB} MB on {targetRoot}.");
+            foreach (var fold in result.TopFolders)
+            {
+                LargeFolders.Add(fold);
+            }
+
+            AddLog($"Large files scan completed. Discovered {LargeFiles.Count} files and {LargeFolders.Count} major folders.");
             LiveActionText = "Scan Complete";
             LiveCountText = $"{LargeFiles.Count} files";
-            LiveFreedText = "";
-            StatusMessage = $"Large files scan completed ({LargeFiles.Count} files listed).";
+            LiveFreedText = $"{LargeFolders.Count} folders";
+            StatusMessage = $"Space analysis completed ({LargeFiles.Count} files, {LargeFolders.Count} folders).";
         }
         catch (OperationCanceledException)
         {
@@ -710,6 +809,7 @@ public class MainViewModel : INotifyPropertyChanged
         string? path = null;
         if (param is CleanItem ci) path = ci.TargetPath;
         else if (param is LargeFileItem lfi) path = lfi.DirectoryPath;
+        else if (param is LargeFolderItem lfo) path = lfo.FolderPath;
         else if (param is string p) path = p;
 
         if (string.IsNullOrEmpty(path)) return;
@@ -735,25 +835,44 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (item == null) return;
 
-        var res = MessageBox.Show(
-            $"Move file to Recycle Bin?\n\n{item.FileName}\nSize: {item.SizeFormatted}\nPath: {item.FilePath}",
-            "Delete File",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (res == MessageBoxResult.Yes)
+        // Anti-Corruption Safety Guard
+        if (item.IsHighRisk)
         {
-            bool ok = NativeMethods.MoveToRecycleBin(item.FilePath);
-            if (ok || !File.Exists(item.FilePath))
-            {
-                LargeFiles.Remove(item);
-                AddLog($"Deleted file: {item.FilePath} ({item.SizeFormatted})");
-                RefreshDrives();
-            }
-            else
-            {
-                MessageBox.Show("Could not delete file. It may be locked by another process.", "DiskSweep", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            var warningRes = MessageBox.Show(
+                $"⚠️ HIGH RISK OF APPLICATION/GAME CORRUPTION\n\n" +
+                $"File: {item.FileName}\n" +
+                $"Type: {item.ParentContext}\n" +
+                $"Path: {item.FilePath}\n\n" +
+                $"This file is an internal engine or content asset of an installed application or game. Deleting individual chunks (.pak/.ucas/binaries) WILL CORRUPT THE GAME OR APP!\n\n" +
+                $"If you are trying to free up disk space, please uninstall the game properly via its launcher (Epic Games, Steam, Riot, etc.) or Windows Settings.\n\n" +
+                $"Are you ABSOLUTELY POSITIVE you want to delete this file?",
+                "DiskSweep - Game & System Protection Guard",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Stop);
+
+            if (warningRes != MessageBoxResult.Yes) return;
+        }
+        else
+        {
+            var res = MessageBox.Show(
+                $"Move file to Recycle Bin?\n\n{item.FileName}\nSize: {item.SizeFormatted}\nPath: {item.FilePath}",
+                "Confirm File Removal",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res != MessageBoxResult.Yes) return;
+        }
+
+        bool ok = NativeMethods.MoveToRecycleBin(item.FilePath);
+        if (ok || !File.Exists(item.FilePath))
+        {
+            LargeFiles.Remove(item);
+            AddLog($"Removed file: {item.FilePath} ({item.SizeFormatted})");
+            RefreshDrives();
+        }
+        else
+        {
+            MessageBox.Show("Could not delete file. It may be locked by an active process.", "DiskSweep", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

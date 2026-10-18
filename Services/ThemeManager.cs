@@ -5,7 +5,7 @@ namespace DiskSweep.Services;
 
 public static class ThemeManager
 {
-    public static readonly string[] AvailableThemes = ["Charcoal", "OLED", "MidnightNavy", "MatrixGreen"];
+    public static readonly string[] AvailableThemes = ["Charcoal", "OLED", "MidnightNavy", "MatrixGreen", "ClassicLight"];
 
     public static void ApplyTheme(string themeName)
     {
@@ -51,6 +51,19 @@ public static class ThemeManager
                     accentHover: "#34D399",
                     textPrimary: "#E2F8E9",
                     textSecondary: "#7AA885");
+                break;
+
+            case "ClassicLight":
+                SetBrushes(res,
+                    bg: "#F4F5F7",
+                    surface: "#FFFFFF",
+                    panel: "#E9ECEF",
+                    header: "#DEE2E6",
+                    border: "#CED4DA",
+                    accent: "#0066CC",
+                    accentHover: "#0052A3",
+                    textPrimary: "#212529",
+                    textSecondary: "#6C757D");
                 break;
 
             case "Charcoal":

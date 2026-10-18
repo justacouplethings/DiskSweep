@@ -5,7 +5,7 @@
         xmlns:models="clr-namespace:DiskSweep.Models"
         Title="DiskSweep - Storage Capacity &amp; System Cleaner [Administrator]" 
         Icon="Assets/app_icon.png"
-        Height="780" Width="1180" MinHeight="640" MinWidth="960"
+        Height="790" Width="1200" MinHeight="660" MinWidth="980"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BgDarkBrush}"
         Foreground="{DynamicResource TextPrimaryBrush}">
@@ -49,6 +49,8 @@
                 <MenuItem Header="OLED Pure Black" Click="MenuTheme_Click" Tag="OLED"/>
                 <MenuItem Header="Midnight Navy" Click="MenuTheme_Click" Tag="MidnightNavy"/>
                 <MenuItem Header="Matrix Green" Click="MenuTheme_Click" Tag="MatrixGreen"/>
+                <Separator Background="{DynamicResource BorderDarkBrush}"/>
+                <MenuItem Header="Classic Light (White Theme)" Click="MenuTheme_Click" Tag="ClassicLight"/>
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="Open _User Temp Folder" Click="MenuOpenUserTemp_Click"/>
@@ -60,7 +62,7 @@
             </MenuItem>
         </Menu>
 
-        <!-- 2. Classic Toolbar (Revo / Process Hacker inspired) -->
+        <!-- 2. Classic Toolbar -->
         <Border Grid.Row="1" Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="8,6">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
@@ -151,7 +153,7 @@
             </DockPanel>
         </Border>
 
-        <!-- 3. Feature 1: Drive Capacity & Percentage Overview Strip (Fixed Clean Grid Header) -->
+        <!-- 3. Feature 1: Drive Capacity & Percentage Overview Strip (Non-Colliding Responsive Grid) -->
         <Border Grid.Row="2" Background="{DynamicResource SurfaceDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8">
             <Grid>
                 <Grid.RowDefinitions>
@@ -159,7 +161,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header Row: Responsive Grid eliminating any collision between Title and Metrics -->
+                <!-- Header Row: Responsive Grid eliminating collisions -->
                 <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -175,7 +177,7 @@
                         <TextBlock Text="STORAGE CAPACITY &amp; DRIVE HEALTH" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
 
-                    <!-- Right: Clear Storage Metrics Badges -->
+                    <!-- Right: Distinct Storage Metrics Badges -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="3" Padding="8,3" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal">
@@ -373,31 +375,58 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 2: Large Files Analyzer -->
-            <TabItem Header="📊 Space Analyzer (Large Files)">
+            <!-- Tab 2: Remade Space Analyzer with Game Protection & Top Folders -->
+            <TabItem Header="📊 Space Analyzer">
                 <Grid Background="{DynamicResource SurfaceDarkBrush}">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/> <!-- Warning Banner -->
+                        <RowDefinition Height="Auto"/> <!-- Controls Strip -->
+                        <RowDefinition Height="*"/>    <!-- DataGrids -->
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,8">
+                    <!-- Row 0: High-Visibility Anti-Corruption Warning Banner -->
+                    <Border Grid.Row="0" Background="#2B1D0E" BorderBrush="#D29922" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="8,8,8,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="⚠️" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="CAUTION: GAME &amp; APPLICATION FILE CORRUPTION WARNING" FontWeight="Bold" FontSize="11" Foreground="#F0883E"/>
+                                <TextBlock Text="Large files residing in Program Files, Epic Games, Steam, Riot Games, or Windows are required by their games. Deleting individual engine chunks (.ucas/.pak/.rpf) will corrupt your games! Only delete standalone personal files you recognize (e.g., video recordings, ISOs, installer .exe). To reclaim space from games, uninstall them cleanly through their launcher." 
+                                           FontSize="11" Foreground="#E6EDF3" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Row 1: Analyzer Controls Strip -->
+                    <Border Grid.Row="1" Background="{DynamicResource HeaderDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="0,0,0,1" Padding="10,8">
                         <DockPanel>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                                <TextBlock Text="Target Drive: " VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0"/>
-                                <ComboBox Width="140" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive}" DisplayMemberPath="DisplayTitle" Margin="0,0,10,0"/>
-                                <Button Style="{StaticResource AccentButtonStyle}" Command="{Binding ScanLargeFilesCommand}" ToolTip="Scan drive for top 100 space-consuming files">
+                                <TextBlock Text="Target Scope: " VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,6,0"/>
+                                <ComboBox Width="250" ItemsSource="{Binding DriveTargetOptions}" SelectedItem="{Binding SelectedDriveTarget}" Margin="0,0,12,0"/>
+
+                                <Button Style="{StaticResource AccentButtonStyle}" Command="{Binding ScanLargeFilesCommand}" ToolTip="Scan selected drive or all drives for space hogs">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🔎 Scan Top Large Files" VerticalAlignment="Center"/>
+                                        <TextBlock Text="🔎 Analyze Storage" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
+
+                                <Separator Style="{x:Null}" Width="1" Background="{DynamicResource BorderDarkBrush}" Margin="12,2"/>
+
+                                <!-- View Mode Selector -->
+                                <RadioButton Content="📄 Individual Files" IsChecked="{Binding ShowLargeFilesView}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <RadioButton Content="📁 Major Folders" IsChecked="{Binding ShowLargeFoldersView}" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding LargeFiles.Count, StringFormat={}{0} large files discovered}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding LargeFiles.Count, StringFormat={}{0} items cataloged}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </DockPanel>
                     </Border>
 
-                    <DataGrid Grid.Row="1" ItemsSource="{Binding LargeFiles}" SelectedItem="{Binding SelectedLargeFile}" 
+                    <!-- Row 2: View 0 (Large Files DataGrid) -->
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding LargeFiles}" SelectedItem="{Binding SelectedLargeFile}" 
+                              Visibility="{Binding ShowLargeFilesView, Converter={StaticResource BooleanToVisibilityConverter}}"
                               AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
                         <DataGrid.ContextMenu>
                             <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
@@ -406,11 +435,52 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="250"/>
-                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="110"/>
-                            <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="80"/>
-                            <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedFormatted}" Width="150"/>
+                            <!-- Risk Badge Column -->
+                            <DataGridTemplateColumn Header="Safety Status" Width="130">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="{x:Type models:LargeFileItem}">
+                                        <Border CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" Background="#1E1E1E" BorderThickness="1" BorderBrush="{Binding RiskBadgeColor}">
+                                            <TextBlock Text="{Binding RiskBadge}" FontSize="9" FontWeight="Bold" Foreground="{Binding RiskBadgeColor}"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Type / Source Context" Binding="{Binding ParentContext}" Width="200"/>
+                            <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="240"/>
+                            <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="100"/>
+                            <DataGridTextColumn Header="Extension" Binding="{Binding Extension}" Width="75"/>
+                            <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedFormatted}" Width="140"/>
                             <DataGridTextColumn Header="Folder Directory" Binding="{Binding DirectoryPath}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Row 2: View 1 (Large Folders DataGrid) -->
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding LargeFolders}" SelectedItem="{Binding SelectedLargeFolder}" 
+                              Visibility="{Binding ShowLargeFoldersView, Converter={StaticResource BooleanToVisibilityConverter}}"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu Background="{DynamicResource HeaderDarkBrush}">
+                                <MenuItem Header="Open Folder in File Explorer" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding SelectedLargeFolder}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Columns>
+                            <!-- Risk Badge Column -->
+                            <DataGridTemplateColumn Header="Category" Width="170">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="{x:Type models:LargeFolderItem}">
+                                        <Border CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" Background="#1E1E1E" BorderThickness="1" BorderBrush="{Binding RiskBadgeColor}">
+                                            <TextBlock Text="{Binding RiskBadge}" FontSize="9" FontWeight="Bold" Foreground="{Binding RiskBadgeColor}"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Folder Name" Binding="{Binding FolderName}" Width="220"/>
+                            <DataGridTextColumn Header="Total Size" Binding="{Binding TotalSizeFormatted}" Width="120"/>
+                            <DataGridTextColumn Header="File Count" Binding="{Binding FileCount, StringFormat={}{0:N0} large files}" Width="120"/>
+                            <DataGridTextColumn Header="Context" Binding="{Binding Category}" Width="220"/>
+                            <DataGridTextColumn Header="Full Folder Path" Binding="{Binding FolderPath}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -436,15 +506,14 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 4: Settings & Themes (New Feature) -->
+            <!-- Tab 4: Settings & Themes (With White Theme Added) -->
             <TabItem Header="⚙️ Settings &amp; Themes">
                 <ScrollViewer Background="{DynamicResource SurfaceDarkBrush}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="24,20" MaxWidth="800" HorizontalAlignment="Left">
-                        <!-- Header -->
+                    <StackPanel Margin="24,20" MaxWidth="880" HorizontalAlignment="Left">
                         <TextBlock Text="Settings &amp; Personalization" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                         <TextBlock Text="Customize interface themes, deletion behavior, safety cushions, and analysis thresholds." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,20"/>
 
-                        <!-- Section 1: Themes -->
+                        <!-- Section 1: Themes (5 Themes: Charcoal, OLED, Midnight Navy, Matrix Green, Classic Light) -->
                         <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
                             <StackPanel>
                                 <TextBlock Text="🎨 Visual Theme" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
@@ -456,17 +525,18 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Theme 1: Charcoal -->
                                     <RadioButton Grid.Column="0" GroupName="ThemeGroup" Content="Charcoal Dark" Tag="Charcoal" Click="ThemeRadio_Click"
-                                                 IsChecked="True" Margin="0,0,8,0">
+                                                 IsChecked="True" Margin="0,0,6,0">
                                         <RadioButton.Template>
                                             <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="bd" Background="#181818" BorderBrush="#007ACC" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                <Border Background="#181818" BorderBrush="#007ACC" BorderThickness="2" CornerRadius="4" Padding="8,8" Cursor="Hand">
                                                     <StackPanel>
-                                                        <TextBlock Text="Charcoal Dark" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF"/>
-                                                        <TextBlock Text="Visual Studio Classic" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Charcoal Dark" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
+                                                        <TextBlock Text="VS Dark Classic" FontSize="9" Foreground="#888888" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Border>
                                             </ControlTemplate>
@@ -474,13 +544,13 @@
                                     </RadioButton>
 
                                     <!-- Theme 2: OLED -->
-                                    <RadioButton Grid.Column="1" GroupName="ThemeGroup" Content="OLED Black" Tag="OLED" Click="ThemeRadio_Click" Margin="0,0,8,0">
+                                    <RadioButton Grid.Column="1" GroupName="ThemeGroup" Content="OLED Black" Tag="OLED" Click="ThemeRadio_Click" Margin="0,0,6,0">
                                         <RadioButton.Template>
                                             <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="bd" Background="#000000" BorderBrush="#00FF9D" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                <Border Background="#000000" BorderBrush="#00FF9D" BorderThickness="2" CornerRadius="4" Padding="8,8" Cursor="Hand">
                                                     <StackPanel>
-                                                        <TextBlock Text="OLED Black" FontWeight="Bold" FontSize="12" Foreground="#00FF9D"/>
-                                                        <TextBlock Text="Pure Black &amp; Neon" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="OLED Black" FontWeight="Bold" FontSize="11" Foreground="#00FF9D"/>
+                                                        <TextBlock Text="Pure Black/Neon" FontSize="9" Foreground="#888888" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Border>
                                             </ControlTemplate>
@@ -488,13 +558,13 @@
                                     </RadioButton>
 
                                     <!-- Theme 3: Midnight Navy -->
-                                    <RadioButton Grid.Column="2" GroupName="ThemeGroup" Content="Midnight Navy" Tag="MidnightNavy" Click="ThemeRadio_Click" Margin="0,0,8,0">
+                                    <RadioButton Grid.Column="2" GroupName="ThemeGroup" Content="Midnight Navy" Tag="MidnightNavy" Click="ThemeRadio_Click" Margin="0,0,6,0">
                                         <RadioButton.Template>
                                             <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="bd" Background="#0B0F17" BorderBrush="#3B82F6" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                <Border Background="#0B0F17" BorderBrush="#3B82F6" BorderThickness="2" CornerRadius="4" Padding="8,8" Cursor="Hand">
                                                     <StackPanel>
-                                                        <TextBlock Text="Midnight Navy" FontWeight="Bold" FontSize="12" Foreground="#60A5FA"/>
-                                                        <TextBlock Text="Cyber Nord Deep Sea" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Midnight Navy" FontWeight="Bold" FontSize="11" Foreground="#60A5FA"/>
+                                                        <TextBlock Text="Cyber Nord Dark" FontSize="9" Foreground="#888888" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Border>
                                             </ControlTemplate>
@@ -502,13 +572,27 @@
                                     </RadioButton>
 
                                     <!-- Theme 4: Matrix Green -->
-                                    <RadioButton Grid.Column="3" GroupName="ThemeGroup" Content="Matrix Green" Tag="MatrixGreen" Click="ThemeRadio_Click">
+                                    <RadioButton Grid.Column="3" GroupName="ThemeGroup" Content="Matrix Green" Tag="MatrixGreen" Click="ThemeRadio_Click" Margin="0,0,6,0">
                                         <RadioButton.Template>
                                             <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="bd" Background="#060A06" BorderBrush="#10B981" BorderThickness="2" CornerRadius="4" Padding="10,8" Cursor="Hand">
+                                                <Border Background="#060A06" BorderBrush="#10B981" BorderThickness="2" CornerRadius="4" Padding="8,8" Cursor="Hand">
                                                     <StackPanel>
-                                                        <TextBlock Text="Matrix Green" FontWeight="Bold" FontSize="12" Foreground="#34D399"/>
-                                                        <TextBlock Text="Terminal Emerald" FontSize="10" Foreground="#888888" Margin="0,2,0,0"/>
+                                                        <TextBlock Text="Matrix Green" FontWeight="Bold" FontSize="11" Foreground="#34D399"/>
+                                                        <TextBlock Text="Terminal Emerald" FontSize="9" Foreground="#888888" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </RadioButton.Template>
+                                    </RadioButton>
+
+                                    <!-- Theme 5: Classic Light (White Theme) -->
+                                    <RadioButton Grid.Column="4" GroupName="ThemeGroup" Content="Classic Light" Tag="ClassicLight" Click="ThemeRadio_Click">
+                                        <RadioButton.Template>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border Background="#FFFFFF" BorderBrush="#0066CC" BorderThickness="2" CornerRadius="4" Padding="8,8" Cursor="Hand">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Classic Light" FontWeight="Bold" FontSize="11" Foreground="#1C2024"/>
+                                                        <TextBlock Text="Crisp White" FontSize="9" Foreground="#6C757D" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                 </Border>
                                             </ControlTemplate>
@@ -538,7 +622,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Section 3: Space Analyzer Threshold -->
+                        <!-- Section 3: Space Analyzer Filter Threshold -->
                         <Border Background="{DynamicResource PanelDarkBrush}" BorderBrush="{DynamicResource BorderDarkBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
                             <StackPanel>
                                 <TextBlock Text="📊 Space Analyzer Filter" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
@@ -546,7 +630,7 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Large File Minimum Size: " VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,12,0"/>
-                                    <ComboBox Width="130" SelectedValue="{Binding LargeFileSizeThresholdMB, Mode=TwoWay}" SelectedValuePath="Tag">
+                                    <ComboBox Width="160" SelectedValue="{Binding LargeFileSizeThresholdMB, Mode=TwoWay}" SelectedValuePath="Tag">
                                         <ComboBoxItem Content="25 MB" Tag="25"/>
                                         <ComboBoxItem Content="50 MB (Default)" Tag="50"/>
                                         <ComboBoxItem Content="100 MB" Tag="100"/>

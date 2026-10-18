@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/justacouplethings/DiskSweep/releases"><img src="https://img.shields.io/badge/release-v1.0.0-blue.svg" alt="Release"></a>
+  <a href="https://github.com/justacouplethings/DiskSweep/releases"><img src="https://img.shields.io/badge/release-v1.1.1-blue.svg" alt="Release"></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-007acc.svg" alt="Platform">
   <img src="https://img.shields.io/badge/framework-.NET%2010%20WPF-512bd4.svg" alt="Framework">
   <img src="https://img.shields.io/badge/privileges-Administrator%20UAC-red.svg" alt="Privileges">
@@ -20,14 +20,15 @@
 
 ## 🚀 Overview
 
-**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings that utilitarian, high-density productivity into a modern, sleek dark theme.
+**DiskSweep** is built for power users who demand clear visibility over their drives and swift, non-destructive junk removal. Inspired by classic Windows engineering utilities like **WinDirStat**, **RAMMap**, and **Process Hacker**, DiskSweep brings that utilitarian, high-density productivity into a modern, sleek multi-theme UI.
 
-- **Storage Capacity & Health**: Instant inspection of all active local, external, and removable drives with color-coded health meters.
+- **Storage Capacity & Health**: Instant inspection of all active local, external, and removable drives with responsive non-colliding capacity meters.
 - **Deep Clean Engine**: Scans safe-to-delete temporary files, crash dumps, shader caches, browser caches, Windows Update leftovers, and package manager artifacts.
-- **Granular Control**: Tri-state category toggles and individual item selection with explicit safety ratings.
-- **Non-Destructive & Resilient**: Gracefully handles and skips locked or in-use files without crashing or aborting the sweep.
-- **Top Space Hogs Analyzer**: Quickly finds the top 100 largest files on any drive with quick Explorer and Recycle Bin actions.
-- **Always Elevated**: Pre-configured with native UAC manifest (`requireAdministrator`) to ensure full read/write access to system-level temp and diagnostic directories.
+- **Stationary Telemetry**: Zero text jitter during active sweeps; fixed-column layout for cleaned bytes, deleted file count, and operation status.
+- **Space Analyzer 2.0**: Drive target selection (individual drive or all drives system scan), major folder aggregation, and game corruption safety protection.
+- **5 Sleek Themes**: Charcoal Dark, OLED Pure Black, Midnight Navy, Matrix Green, and Classic Light (White Theme).
+- **Fully Themed Win32 Controls**: Sleek modern scrollbars and themed dropdowns with zero white-on-white rendering bugs.
+- **Always Elevated**: Native UAC manifest (`requireAdministrator`) ensures full access to system-level temp and diagnostic directories.
 
 ---
 
@@ -35,7 +36,7 @@
 
 No installation required. 
 
-1. Download [`DiskSweep-v1.0.0-Portable.zip`](release/DiskSweep-v1.0.0-Portable.zip) from the repository.
+1. Download [`DiskSweep-v1.1.1-Portable.zip`](release/DiskSweep-v1.1.1-Portable.zip) from the repository.
 2. Extract the archive.
 3. Run `DiskSweep.exe` (or launch via `run.bat`).
 
